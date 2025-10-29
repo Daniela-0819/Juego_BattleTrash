@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadReports(user.username);
 });
 
-// 🟢 Cargar los reportes del usuario
+// Cargar los reportes del usuario
 async function loadReports(username) {
   try {
     const response = await fetch(`${CONFIG.API_URL}/game/progress/${username}`);
@@ -19,25 +19,25 @@ async function loadReports(username) {
 
     const data = result.progress || [];
 
-    // 🔹 Tomar solo el último registro por nivel
+    // Tomar solo el último registro por nivel
     const latestByLevel = {};
     data.forEach((record) => {
       latestByLevel[record.levelId] = record;
     });
     const uniqueLevels = Object.values(latestByLevel);
 
-    // 🔹 Calcular datos generales
+    // Calcular datos generales
     const totalGames = data.length;
     const totalScore = uniqueLevels.reduce((sum, lvl) => sum + (lvl.score || 0), 0);
     const totalTime = uniqueLevels.reduce((sum, lvl) => sum + parseTime(lvl.time), 0);
 
-    // 🔹 Mostrar resumen
+    // Mostrar resumen
     document.getElementById("totalGames").textContent = totalGames;
     document.getElementById("totalScore").textContent = totalScore;
     document.getElementById("totalTime").textContent = formatTime(totalTime);
     document.getElementById("levelsCompleted").textContent = `${uniqueLevels.length}/5`;
 
-    // 🔹 Mostrar historial de partidas
+    // Mostrar historial de partidas
     const historyContainer = document.getElementById("history");
     historyContainer.innerHTML = `
       <table>
@@ -68,14 +68,14 @@ async function loadReports(username) {
   }
 }
 
-// 🕒 Convertir formato de "m:ss" a segundos para sumar
+// Convertir formato de "m:ss" a segundos para sumar
 function parseTime(timeStr) {
   if (!timeStr || typeof timeStr !== "string") return 0;
   const [m, s] = timeStr.split(":").map(Number);
   return (m * 60) + (s || 0);
 }
 
-// 🕒 Formatear segundos → "m:ss"
+// Formatear segundos a "m:ss"
 function formatTime(seconds) {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
@@ -89,6 +89,12 @@ function getLevelName(id) {
       return "Nivel 1 - Memory Game";
     case 2:
       return "Nivel 2 - Sembrar Planta";
+    case 3:
+      return "Nivel 3 - Reciclar Aceite";
+    case 4:
+      return "Nivel 4 - Apagar Incendio";
+    case 5:
+      return "Nivel 5 - Ciudad Apocalíptica";
     default:
       return `Nivel ${id}`;
   }

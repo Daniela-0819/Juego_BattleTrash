@@ -102,7 +102,6 @@ const login = async (req, res) => {
   }
 };
 
-// IMPORTANTE: Exportar las funciones
 module.exports = {
   register,
   login
