@@ -18,21 +18,21 @@ const getLevels = (req, res) => {
     },
     {
       id: 3,
-      name: "Reciclar Aceite",
+      name: "Reciclar Residuos",
       difficulty: "Medio",
-      description: "Clasifica aceites y grasas"
+      description: "Clasifica y deshecha los residuos correctamente"
     },
     {
       id: 4,
-      name: "Apagar Incendio",
+      name: "Trivia",
       difficulty: "Difícil",
-      description: "Identifica materiales peligrosos"
+      description: "Responde preguntas sobre reciclaje"
     },
     {
       id: 5,
-      name: "Ciudad Apocalíptica",
+      name: "¿Se recicla?",
       difficulty: "Muy Difícil",
-      description: "Clasificación bajo presión"
+      description: "Clasificación de residuos bajo presión"
     }
   ];
 

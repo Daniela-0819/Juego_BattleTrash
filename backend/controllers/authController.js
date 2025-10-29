@@ -106,3 +106,12 @@ module.exports = {
   register,
   login
 };
+const getAllUsers = (req, res) => {
+  res.json(Array.from(users.entries()).map(([username, user]) => user));
+};
+
+module.exports = {
+  register,
+  login,
+  getAllUsers
+};
