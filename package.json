@@ -1,0 +1,23 @@
+{
+  "name": "battletrash",
+  "version": "1.0.0",
+  "description": "Videojuego educativo sobre clasificación de residuos",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js"
+  },
+  "keywords": ["game", "education", "recycling"],
+  "author": "Equipo BattleTrash",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "body-parser": "^1.20.2",
+    "bcrypt": "^5.1.1",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
