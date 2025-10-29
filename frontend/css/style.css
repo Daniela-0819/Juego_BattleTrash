@@ -1368,3 +1368,37 @@ footer p {
     background: #d4edda !important;
     font-weight: bold;
 }
+
+/* ==== CORRECCIÓN VISIBILIDAD TEXTO ==== */
+
+/* Fondo y texto del menú de niveles */
+.level-selection, 
+.level-selection h1, 
+.level-selection h2, 
+.level-selection p, 
+.level-selection button,
+.level-selection span {
+  color: #222 !important; /* gris oscuro legible */
+}
+
+/* Texto en botones secundarios */
+.btn-secondary {
+  color: #222 !important;
+  background-color: #eaeaea !important;
+}
+
+/* Títulos en contenedores de niveles */
+.levels-grid h3, 
+.levels-grid p {
+  color: #222 !important;
+}
+
+/* Ajustar fondo del menú si es muy claro */
+.level-selection {
+  background-color: #f8f8f8 !important;
+}
+
+/* Información del usuario */
+.user-info span {
+  color: #222 !important;
+}
