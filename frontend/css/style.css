@@ -1505,3 +1505,180 @@ footer p {
     font-size: 2em;
     margin: 0;
 }
+
+/* Nivel 5: ¿Se Recicla? */
+.recycle-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+.recycle-item-display {
+    background: white;
+    padding: 60px 40px;
+    border-radius: 25px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    text-align: center;
+    margin-bottom: 40px;
+    animation: slideIn 0.5s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.recycle-emoji {
+    font-size: 8em;
+    margin-bottom: 20px;
+    animation: bounce 1s ease infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.recycle-item-name {
+    color: #2c3e50;
+    font-size: 2.5em;
+    margin: 20px 0;
+    font-weight: bold;
+}
+
+.recycle-question {
+    color: #7f8c8d;
+    font-size: 1.5em;
+    margin-top: 15px;
+}
+
+.recycle-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.recycle-btn {
+    background: white;
+    border: 4px solid #e0e0e0;
+    padding: 40px 30px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.recycle-btn:hover:not(:disabled) {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+.recycle-btn.yes-btn {
+    border-color: #27ae60;
+}
+
+.recycle-btn.yes-btn:hover:not(:disabled) {
+    background: #d4edda;
+    border-color: #27ae60;
+}
+
+.recycle-btn.no-btn {
+    border-color: #e74c3c;
+}
+
+.recycle-btn.no-btn:hover:not(:disabled) {
+    background: #f8d7da;
+    border-color: #e74c3c;
+}
+
+.recycle-btn .btn-icon {
+    font-size: 4em;
+}
+
+.recycle-btn .btn-text {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.recycle-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.recycle-btn.correct {
+    background: #d4edda !important;
+    border-color: #28a745 !important;
+    animation: correctPulse 0.6s ease;
+}
+
+.recycle-btn.incorrect {
+    background: #f8d7da !important;
+    border-color: #dc3545 !important;
+    animation: incorrectShake 0.6s ease;
+}
+
+@keyframes correctPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+@keyframes incorrectShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-15px); }
+    75% { transform: translateX(15px); }
+}
+
+.recycle-explanation {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.recycle-explanation .explanation-icon {
+    font-size: 5em;
+    margin-bottom: 15px;
+}
+
+.recycle-explanation h4 {
+    color: #2c3e50;
+    font-size: 2em;
+    margin: 15px 0;
+}
+
+.explanation-detail {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 15px;
+    font-size: 1.3em;
+    line-height: 1.6;
+    color: #495057;
+    margin: 25px 0;
+    border-left: 5px solid #3498db;
+}
+
+.recycle-explanation button {
+    margin-top: 25px;
+    padding: 15px 50px;
+    font-size: 1.2em;
+}
+
+.percentage-text {
+    font-size: 1.8em;
+    color: #27ae60;
+    font-weight: bold;
+    margin-top: 10px;
+}

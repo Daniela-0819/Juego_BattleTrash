@@ -51,6 +51,12 @@ function showLevelMenu() {
                 <button onclick="startLevel4()" class="btn-primary">Jugar</button>
             </div>
             <div class="level-card">
+                <h3>Nivel 5</h3>
+                <p>♻️ ¿Se Recicla?</p>
+                <p><small>Verdadero o Falso</small></p>
+                <button onclick="startLevel5()" class="btn-primary">Jugar</button>
+            </div>
+            <div class="level-card">
                 <h3>📊 Reportes</h3>
                 <p>Consulta tus resultados</p>
                 <button onclick="window.location.href='reports.html'" class="btn-secondary">Ver Reportes</button>
@@ -779,6 +785,207 @@ async function completeLevel4() {
     `;
 }
 
+function startLevel5() {
+    currentLevel = 5;
+    score = 0;
+    timer = 0;
+    level5Score = 0;
+    level5Hits = 0;
+    level5Errors = 0;
+    currentRecycleItem = 0;
+    
+    recycleItems = [
+        { name: 'Botella de vidrio', emoji: '🍾', recyclable: true, explanation: 'El vidrio es 100% reciclable y puede reciclarse infinitas veces.' },
+        { name: 'Pañal usado', emoji: '🧷', recyclable: false, explanation: 'Los pañales usados NO se reciclan por contaminación biológica.' },
+        { name: 'Lata de aluminio', emoji: '🥫', recyclable: true, explanation: 'Las latas de aluminio son altamente reciclables y ahorran mucha energía.' },
+        { name: 'Papel higiénico', emoji: '🧻', recyclable: false, explanation: 'El papel higiénico NO se recicla por razones de higiene.' },
+        { name: 'Periódico', emoji: '📰', recyclable: true, explanation: 'El papel de periódico es completamente reciclable.' },
+        { name: 'Servilletas sucias', emoji: '🧽', recyclable: false, explanation: 'Las servilletas con restos de comida NO se reciclan.' },
+        { name: 'Caja de cartón', emoji: '📦', recyclable: true, explanation: 'El cartón limpio es 100% reciclable.' },
+        { name: 'Espejo roto', emoji: '🪞', recyclable: false, explanation: 'Los espejos NO se reciclan porque tienen recubrimientos químicos.' },
+        { name: 'Botella plástico PET', emoji: '🧴', recyclable: true, explanation: 'Las botellas PET (#1) son muy reciclables.' },
+        { name: 'Bombilla incandescente', emoji: '💡', recyclable: false, explanation: 'Las bombillas incandescentes NO se reciclan en contenedores normales.' },
+        { name: 'Lata de conservas', emoji: '🥫', recyclable: true, explanation: 'Las latas de metal son completamente reciclables.' },
+        { name: 'Colilla de cigarro', emoji: '🚬', recyclable: false, explanation: 'Las colillas NO son reciclables y son muy contaminantes.' },
+        { name: 'Papel de oficina', emoji: '📄', recyclable: true, explanation: 'El papel blanco de oficina tiene alto valor de reciclaje.' },
+        { name: 'Cerámica rota', emoji: '🏺', recyclable: false, explanation: 'La cerámica NO se recicla en el sistema convencional.' },
+        { name: 'Botella de vino', emoji: '🍷', recyclable: true, explanation: 'Las botellas de vidrio se reciclan completamente.' },
+        { name: 'Pañuelo desechable', emoji: '🤧', recyclable: false, explanation: 'Los pañuelos usados NO son reciclables.' },
+        { name: 'Revista', emoji: '📔', recyclable: true, explanation: 'Las revistas son reciclables aunque tengan tinta de colores.' },
+        { name: 'Chicle', emoji: '🍬', recyclable: false, explanation: 'El chicle NO es reciclable y contamina.' },
+        { name: 'Envase Tetra Pak', emoji: '🧃', recyclable: true, explanation: 'Los Tetra Pak son reciclables en plantas especializadas.' },
+        { name: 'Toalla sanitaria', emoji: '🩹', recyclable: false, explanation: 'Los productos de higiene personal NO se reciclan.' }
+    ];
+    
+    recycleItems = recycleItems.sort(() => Math.random() - 0.5).slice(0, 15);
+    
+    document.getElementById('levelSelection').style.display = 'none';
+    document.getElementById('gameScreen').innerHTML = `
+        <div class="game-hud">
+            <h2>♻️ Nivel 5: ¿Se Recicla?</h2>
+            <div>
+                <span>Item: <strong id="itemNumber">1</strong> de ${recycleItems.length}</span> | 
+                <span>Puntos: <strong id="score">0</strong></span> | 
+                <span>Aciertos: <strong id="hits">0</strong></span> |
+                <span>Errores: <strong id="errors">0</strong></span> |
+                <span>Tiempo: <strong id="timer">0:00</strong></span>
+            </div>
+        </div>
+        
+        <div class="recycle-container">
+            <div id="recycleItemDisplay" class="recycle-item-display"></div>
+            <div class="recycle-buttons">
+                <button class="recycle-btn yes-btn" onclick="answerRecycle(true)">
+                    <span class="btn-icon">✅</span>
+                    <span class="btn-text">SE RECICLA</span>
+                </button>
+                <button class="recycle-btn no-btn" onclick="answerRecycle(false)">
+                    <span class="btn-icon">❌</span>
+                    <span class="btn-text">NO SE RECICLA</span>
+                </button>
+            </div>
+            <div id="recycleExplanation" class="recycle-explanation" style="display:none;"></div>
+        </div>
+        
+        <div class="game-controls">
+            <button onclick="exitToMenu()" class="btn-secondary">Salir</button>
+        </div>
+    `;
+    document.getElementById('gameScreen').style.display = 'block';
+    
+    showRecycleItem();
+    startTimer();
+}
+
+function showRecycleItem() {
+    if (currentRecycleItem >= recycleItems.length) {
+        completeLevel5();
+        return;
+    }
+    
+    const item = recycleItems[currentRecycleItem];
+    
+    document.getElementById('itemNumber').textContent = currentRecycleItem + 1;
+    document.getElementById('recycleItemDisplay').innerHTML = `
+        <div class="recycle-emoji">${item.emoji}</div>
+        <h3 class="recycle-item-name">${item.name}</h3>
+        <p class="recycle-question">¿Este objeto se puede reciclar?</p>
+    `;
+    
+    document.getElementById('recycleExplanation').style.display = 'none';
+    
+    // Habilitar botones
+    const buttons = document.querySelectorAll('.recycle-btn');
+    buttons.forEach(btn => {
+        btn.disabled = false;
+        btn.classList.remove('correct', 'incorrect');
+    });
+}
+
+function answerRecycle(userAnswer) {
+    const item = recycleItems[currentRecycleItem];
+    const isCorrect = userAnswer === item.recyclable;
+    
+    // Deshabilitar botones
+    const buttons = document.querySelectorAll('.recycle-btn');
+    buttons.forEach(btn => btn.disabled = true);
+    
+    // Marcar botón seleccionado
+    const yesBtn = document.querySelector('.yes-btn');
+    const noBtn = document.querySelector('.no-btn');
+    
+    if (userAnswer) {
+        yesBtn.classList.add(isCorrect ? 'correct' : 'incorrect');
+    } else {
+        noBtn.classList.add(isCorrect ? 'correct' : 'incorrect');
+    }
+    
+    // Mostrar el botón correcto si falló
+    if (!isCorrect) {
+        if (item.recyclable) {
+            yesBtn.classList.add('correct');
+        } else {
+            noBtn.classList.add('correct');
+        }
+    }
+    
+    // Actualizar puntuación
+    if (isCorrect) {
+        level5Score += 100;
+        level5Hits++;
+    } else {
+        level5Score -= 20;
+        level5Errors++;
+    }
+    
+    updateLevel5UI();
+    
+    // Mostrar explicación
+    const explanationEl = document.getElementById('recycleExplanation');
+    explanationEl.innerHTML = `
+        <div class="explanation-icon">${isCorrect ? '✅' : '❌'}</div>
+        <h4>${isCorrect ? '¡Correcto!' : '¡Incorrecto!'}</h4>
+        <p class="explanation-detail">${item.explanation}</p>
+        <button onclick="nextRecycleItem()" class="btn-primary">
+            ${currentRecycleItem < recycleItems.length - 1 ? 'Siguiente' : 'Ver Resultados'}
+        </button>
+    `;
+    explanationEl.style.display = 'block';
+}
+
+function nextRecycleItem() {
+    currentRecycleItem++;
+    showRecycleItem();
+}
+
+function updateLevel5UI() {
+    document.getElementById('score').textContent = level5Score;
+    document.getElementById('hits').textContent = level5Hits;
+    document.getElementById('errors').textContent = level5Errors;
+}
+
+async function completeLevel5() {
+    stopTimer();
+    
+    const formattedTime = formatTime(timer);
+    await saveGameProgress(5, level5Score, true, formattedTime);
+    saveLevelReport(5, level5Score, level5Hits, level5Errors, formattedTime);
+    
+    const percentage = Math.round((level5Hits / recycleItems.length) * 100);
+    
+    document.getElementById('gameScreen').innerHTML = `
+        <div class="results-container">
+            <h2>🎉 ¡Nivel 5 Completado!</h2>
+            <div class="trivia-results-summary">
+                <div class="result-icon">${percentage >= 80 ? '🏆' : percentage >= 60 ? '🥈' : '🥉'}</div>
+                <h3>${percentage >= 80 ? '¡Experto en reciclaje!' : percentage >= 60 ? '¡Buen trabajo!' : '¡Sigue aprendiendo!'}</h3>
+                <p class="percentage-text">${percentage}% de aciertos</p>
+            </div>
+            <div class="results-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Puntos Totales:</span>
+                    <span class="stat-value">${level5Score}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Respuestas Correctas:</span>
+                    <span class="stat-value">${level5Hits}/${recycleItems.length}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Respuestas Incorrectas:</span>
+                    <span class="stat-value">${level5Errors}/${recycleItems.length}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Tiempo:</span>
+                    <span class="stat-value">${formattedTime}</span>
+                </div>
+            </div>
+            <div class="results-buttons">
+                <button onclick="startLevel5()" class="btn-primary">Reintentar</button>
+                <button onclick="exitToMenu()" class="btn-secondary">Menú Principal</button>
+            </div>
+        </div>
+    `;
+}
 // ⏱️ Utilidades
 function startTimer() {
     timerInterval = setInterval(() => {
