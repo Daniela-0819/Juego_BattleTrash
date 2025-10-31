@@ -93,11 +93,11 @@ function getLevelName(id) {
     case 2:
       return "Nivel 2 - Sembrar Planta";
     case 3:
-      return "Nivel 3 - Reciclar Aceite";
+      return "Nivel 3 - Separar Residuos";
     case 4:
-      return "Nivel 4 - Apagar Incendio";
+      return "Nivel 4 - Trivia ambiental";
     case 5:
-      return "Nivel 5 - Ciudad Apocalíptica";
+      return "Nivel 5 - ¿Se recicla?";
     default:
       return `Nivel ${id}`;
   }

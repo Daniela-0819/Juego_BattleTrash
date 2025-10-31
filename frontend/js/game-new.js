@@ -77,7 +77,7 @@ function showLevelMenu() {
         <div class="levels-grid">
             <div class="level-card">
                 <h3>Nivel 1</h3>
-                <p>🃏 Memory Game</p>
+                <p> Memory Game</p>
                 <p><small>Encuentra los pares</small></p>
                 <button onclick="startLevel1()" class="btn-primary">Jugar</button>
             </div>
@@ -106,7 +106,7 @@ function showLevelMenu() {
                 <button onclick="startLevel5()" class="btn-primary">Jugar</button>
             </div>
             <div class="level-card">
-                <h3>📊 Reportes</h3>
+                <h3> Reportes</h3>
                 <p>Consulta tus resultados</p>
                 <button onclick="window.location.href='reports.html'" class="btn-secondary">Ver Reportes</button>
             </div>
@@ -115,7 +115,7 @@ function showLevelMenu() {
 }
 
 // ========================================
-// 🃏 NIVEL 1: MEMORY GAME
+//  NIVEL 1: MEMORY GAME
 // ========================================
 function startLevel1() {
     currentLevel = 1;
@@ -127,7 +127,7 @@ function startLevel1() {
     const pairs = [
         { icon: '🍎', text: 'Orgánico' },
         { icon: '♻️', text: 'Reciclable' },
-        { icon: '🗑️', text: 'No Reciclable' },
+        { icon: '🚯', text: 'No Reciclable' },
         { icon: '⚠️', text: 'Peligroso' },
         { icon: '📰', text: 'Papel' },
         { icon: '🥫', text: 'Metal' }
@@ -144,7 +144,7 @@ function startLevel1() {
     document.getElementById('levelSelection').style.display = 'none';
     document.getElementById('gameScreen').innerHTML = `
         <div class="game-hud">
-            <h2>🃏 Nivel 1: Memory Game</h2>
+            <h2> Nivel 1: Memory Game</h2>
             <div>Puntos: <strong id="score">0</strong> | Tiempo: <strong id="timer">0:00</strong></div>
         </div>
         <div id="memoryGrid" class="memory-grid"></div>
@@ -324,7 +324,7 @@ async function checkOrder() {
 
         exitToMenu();
     } else {
-        alert('❌ El orden no es correcto. Inténtalo de nuevo.');
+        alert(' El orden no es correcto. Inténtalo de nuevo.');
     }
 }
 
@@ -343,7 +343,7 @@ function startLevel3() {
     containers = [
         { id: 'organico', name: 'Orgánico', icon: '🍎', color: 'green' },
         { id: 'reciclable', name: 'Reciclable', icon: '♻️', color: 'blue' },
-        { id: 'no_reciclable', name: 'No Reciclable', icon: '🗑️', color: 'gray' },
+        { id: 'no_reciclable', name: 'No Reciclable', icon: '🚯', color: 'gray' },
         { id: 'peligroso', name: 'Peligroso', icon: '⚠️', color: 'red' }
     ];
     
@@ -358,7 +358,7 @@ function startLevel3() {
         { id: 8, name: 'Termómetro roto', emoji: '🌡️', type: 'peligroso' },
         { id: 9, name: 'Hojas secas', emoji: '🍂', type: 'organico' },
         { id: 10, name: 'Periódico', emoji: '📰', type: 'reciclable' },
-        { id: 11, name: 'Servilleta sucia', emoji: '🧽', type: 'no_reciclable' },
+        { id: 11, name: 'Servilleta sucia', emoji: '🧻', type: 'no_reciclable' },
         { id: 12, name: 'Medicamentos vencidos', emoji: '💊', type: 'peligroso' },
         { id: 13, name: 'Cáscaras de huevo', emoji: '🥚', type: 'organico' },
         { id: 14, name: 'Caja de cartón', emoji: '📦', type: 'reciclable' },
@@ -554,7 +554,7 @@ async function completeLevel3() {
     
     document.getElementById('gameScreen').innerHTML = `
         <div class="results-container">
-            <h2>🎉 ¡Nivel 3 Completado!</h2>
+            <h2> ¡Nivel 3 Completado!</h2>
             <div class="results-stats">
                 <div class="stat-item">
                     <span class="stat-label">Puntos Totales:</span>
@@ -794,15 +794,15 @@ function startLevel5() {
     
     recycleItems = [
         { name: 'Botella de vidrio', emoji: '🍾', recyclable: true, explanation: 'El vidrio es 100% reciclable y puede reciclarse infinitas veces.' },
-        { name: 'Pañal usado', emoji: '🧷', recyclable: false, explanation: 'Los pañales usados NO se reciclan por contaminación biológica.' },
+        { name: 'Pañal usado', emoji: '🚼', recyclable: false, explanation: 'Los pañales usados NO se reciclan por contaminación biológica.' },
         { name: 'Lata de aluminio', emoji: '🥫', recyclable: true, explanation: 'Las latas de aluminio son altamente reciclables y ahorran mucha energía.' },
         { name: 'Papel higiénico', emoji: '🧻', recyclable: false, explanation: 'El papel higiénico NO se recicla por razones de higiene.' },
         { name: 'Periódico', emoji: '📰', recyclable: true, explanation: 'El papel de periódico es completamente reciclable.' },
-        { name: 'Servilletas sucias', emoji: '🧽', recyclable: false, explanation: 'Las servilletas con restos de comida NO se reciclan.' },
+        { name: 'Servilletas sucias', emoji: '🧻', recyclable: false, explanation: 'Las servilletas con restos de comida NO se reciclan.' },
         { name: 'Caja de cartón', emoji: '📦', recyclable: true, explanation: 'El cartón limpio es 100% reciclable.' },
         { name: 'Espejo roto', emoji: '🪞', recyclable: false, explanation: 'Los espejos NO se reciclan porque tienen recubrimientos químicos.' },
-        { name: 'Botella plástico PET', emoji: '🧴', recyclable: true, explanation: 'Las botellas PET (#1) son muy reciclables.' },
-        { name: 'Bombilla incandescente', emoji: '💡', recyclable: false, explanation: 'Las bombillas incandescentes NO se reciclan en contenedores normales.' },
+        { name: 'Botella plástico', emoji: '🧴', recyclable: true, explanation: 'Las botellas son muy reciclables.' },
+        { name: 'Bombilla', emoji: '💡', recyclable: false, explanation: 'Las bombillas NO se reciclan en contenedores normales.' },
         { name: 'Lata de conservas', emoji: '🥫', recyclable: true, explanation: 'Las latas de metal son completamente reciclables.' },
         { name: 'Colilla de cigarro', emoji: '🚬', recyclable: false, explanation: 'Las colillas NO son reciclables y son muy contaminantes.' },
         { name: 'Papel de oficina', emoji: '📄', recyclable: true, explanation: 'El papel blanco de oficina tiene alto valor de reciclaje.' },
@@ -1022,47 +1022,9 @@ function showFeedback(message, type) {
     }, 1000);
 }
 
-// ========================================
-// 💾 GUARDAR PROGRESO EN MONGODB
-// ========================================
-async function saveGameProgress(levelId, score, completed, time, hits = 0, errors = 0) {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-
-    if (!user.userId) {
-        console.error('❌ No hay usuario logueado');
-        return;
-    }
-
-    try {
-        const response = await fetch(`${CONFIG.API_URL}/game/save-progress`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                userId: user.userId,
-                username: user.username,
-                levelId: levelId,
-                score: score,
-                completed: completed,
-                time: time,
-                hits: hits,
-                errors: errors
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            console.log('✅ Progreso guardado en MongoDB:', data);
-        } else {
-            console.error('❌ Error guardando:', data.error);
-        }
-    } catch (error) {
-        console.error('❌ Error de conexión guardando progreso:', error);
-    }
-}
 
 // ========================================
-// 💾 GUARDAR PROGRESO EN MONGODB
+//  GUARDAR PROGRESO EN MONGODB
 // ========================================
 async function saveGameProgress(levelId, score, completed, time, hits = 0, errors = 0) {
     // CORREGIDO: Leer el usuario correctamente

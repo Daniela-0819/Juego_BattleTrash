@@ -7,7 +7,7 @@
     WASTE_ICONS: {
         organico: '🍎',
         reciclable: '♻️',
-        no_reciclable: '🗑️',
+        no_reciclable: '🧻',
         peligroso: '⚠️'
     }
 };

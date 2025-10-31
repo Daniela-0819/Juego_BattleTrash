@@ -1682,3 +1682,10 @@ footer p {
     font-weight: bold;
     margin-top: 10px;
 }
+
+
+.game-screen {
+  overflow-y: auto; /* Activa el scroll vertical */
+  max-height: 100vh; /* Limita la altura a la pantalla */
+  padding-bottom: 80px; /* Deja espacio para los botones inferiores */
+}
