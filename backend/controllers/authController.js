@@ -1,4 +1,4 @@
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 // En backend/controllers/authController.js
 const User = require('../models/User');  // ../ significa "subir un nivel"
