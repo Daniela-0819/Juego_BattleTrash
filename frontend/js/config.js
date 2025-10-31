@@ -1,5 +1,5 @@
 ﻿const CONFIG = {
-    API_URL: 'http://192.168.1.8:3000/api',  
+    API_URL: 'http://10.24.13.34:3000/api',  
     POINTS: {
         CORRECT: 100,
         INCORRECT: -20

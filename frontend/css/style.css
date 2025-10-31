@@ -1683,6 +1683,42 @@ footer p {
     margin-top: 10px;
 }
 
+/* 💬 Retroalimentación general (niveles 4 y 5) */
+.feedback {
+    text-align: center;
+    font-size: 1.3em;
+    margin: 20px auto;
+    padding: 15px 25px;
+    border-radius: 15px;
+    max-width: 800px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.4s ease;
+}
+
+.feedback.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.feedback.success {
+    background: #d4edda;
+    color: #155724;
+    border: 3px solid #28a745;
+}
+
+.feedback.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 3px solid #dc3545;
+}
+
+.feedback small {
+    display: block;
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #555;
+}
 
 .game-screen {
   overflow-y: auto; /* Activa el scroll vertical */

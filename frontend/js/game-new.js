@@ -38,26 +38,108 @@ let currentRecycleItem = 0;
 let recycleItems = [];
 
 // ========================================
+// FUNCIONES DE GUARDADO (DEBEN ESTAR AL INICIO)
+// ========================================
+
+// Guardar progreso en MongoDB
+async function saveGameProgress(levelId, score, completed, time, hits = 0, errors = 0) {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+    if (!user.userId) {
+        console.error('No hay usuario logueado');
+        return false;
+    }
+
+    console.log('Intentando guardar progreso:', {
+        userId: user.userId,
+        username: user.username,
+        levelId,
+        score,
+        completed,
+        time,
+        hits,
+        errors
+    });
+
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/game/save-progress`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                userId: user.userId,
+                username: user.username,
+                levelId: levelId,
+                score: score,
+                completed: completed,
+                time: time,
+                hits: hits,
+                errors: errors
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            console.log('Progreso guardado en MongoDB:', data);
+            return true;
+        } else {
+            console.error('Error guardando:', data.error);
+            return false;
+        }
+    } catch (error) {
+        console.error('Error de conexión guardando progreso:', error);
+        return false;
+    }
+}
+
+// Guardar reporte local (localStorage) - BACKUP
+function saveLevelReport(levelId, score, hits, errors, time) {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+    if (!user.userId) {
+        console.warn('No se puede guardar reporte local sin usuario');
+        return;
+    }
+
+    const reportKey = `battletrash_reports_${user.userId}`;
+    let reports = JSON.parse(localStorage.getItem(reportKey) || '[]');
+
+    const newReport = {
+        levelId,
+        score,
+        hits,
+        errors,
+        time,
+        timestamp: new Date().toISOString()
+    };
+
+    reports.push(newReport);
+    localStorage.setItem(reportKey, JSON.stringify(reports));
+
+    console.log('Reporte guardado localmente:', newReport);
+}
+
+// ========================================
 // INICIALIZACIÓN
 // ========================================
 window.addEventListener('DOMContentLoaded', () => {
-    // CORREGIDO: Leer el usuario como objeto JSON
     const user = JSON.parse(localStorage.getItem('user') || '{}');
-    
-    console.log('Usuario cargado:', user); // Para debug
-    
+
+    console.log('Usuario cargado:', user);
+
     if (!user.username || !user.userId) {
         console.log('No hay sesión activa, redirigiendo al login...');
         window.location.href = 'login.html';
         return;
     }
-    
-    // Actualizar el nombre de usuario en la interfaz
+
     const userNameElement = document.getElementById('userName');
     if (userNameElement) {
         userNameElement.textContent = user.username;
     }
-    
+
     showLevelMenu();
 });
 
@@ -77,7 +159,7 @@ function showLevelMenu() {
         <div class="levels-grid">
             <div class="level-card">
                 <h3>Nivel 1</h3>
-                <p> Memory Game</p>
+                <p>🧠 Memory Game</p>
                 <p><small>Encuentra los pares</small></p>
                 <button onclick="startLevel1()" class="btn-primary">Jugar</button>
             </div>
@@ -106,12 +188,19 @@ function showLevelMenu() {
                 <button onclick="startLevel5()" class="btn-primary">Jugar</button>
             </div>
             <div class="level-card">
-                <h3> Reportes</h3>
+                <h3>Reportes</h3>
                 <p>Consulta tus resultados</p>
                 <button onclick="window.location.href='reports.html'" class="btn-secondary">Ver Reportes</button>
             </div>
         </div>
     `;
+
+    // Actualizar nombre de usuario después de renderizar
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userNameElement = document.getElementById('userName');
+    if (userNameElement && user.username) {
+        userNameElement.textContent = user.username;
+    }
 }
 
 // ========================================
@@ -144,7 +233,7 @@ function startLevel1() {
     document.getElementById('levelSelection').style.display = 'none';
     document.getElementById('gameScreen').innerHTML = `
         <div class="game-hud">
-            <h2> Nivel 1: Memory Game</h2>
+            <h2>🧠 Nivel 1: Memory Game</h2>
             <div>Puntos: <strong id="score">0</strong> | Tiempo: <strong id="timer">0:00</strong></div>
         </div>
         <div id="memoryGrid" class="memory-grid"></div>
@@ -211,17 +300,24 @@ function checkMatch() {
 
 async function completeLevel1() {
     stopTimer();
-    alert(`¡Nivel Completado! Puntos: ${score}`);
 
     const formattedTime = formatTime(timer);
-    await saveGameProgress(1, score, true, formattedTime, 6, 0);
-    saveLevelReport(1, score, 6, 0, formattedTime);
+
+    console.log('🎮 Completando Nivel 1...');
+    const saved = await saveGameProgress(1, score, true, formattedTime, 6, 0);
+
+    if (saved) {
+        saveLevelReport(1, score, 6, 0, formattedTime);
+        alert(`¡Nivel Completado! Puntos: ${score} - Progreso guardado`);
+    } else {
+        alert(`Nivel completado con ${score} puntos, pero hubo un error al guardar`);
+    }
 
     exitToMenu();
 }
 
 // ========================================
-// 🌱 NIVEL 2: ORDENAR PASOS
+//  NIVEL 2: ORDENAR PASOS
 // ========================================
 function startLevel2() {
     currentLevel = 2;
@@ -316,20 +412,27 @@ async function checkOrder() {
     if (correct) {
         stopTimer();
         score = 200;
-        alert('¡Perfecto! Ordenaste correctamente todos los pasos. Puntos: ' + score);
 
         const formattedTime = formatTime(timer);
-        await saveGameProgress(2, score, true, formattedTime, 6, 0);
-        saveLevelReport(2, score, 6, 0, formattedTime);
+
+        console.log('🎮 Completando Nivel 2...');
+        const saved = await saveGameProgress(2, score, true, formattedTime, 6, 0);
+
+        if (saved) {
+            saveLevelReport(2, score, 6, 0, formattedTime);
+            alert(`¡Perfecto! Ordenaste correctamente. Puntos: ${score} - Progreso guardado`);
+        } else {
+            alert(`Nivel completado con ${score} puntos, pero hubo un error al guardar`);
+        }
 
         exitToMenu();
     } else {
-        alert(' El orden no es correcto. Inténtalo de nuevo.');
+        alert('El orden no es correcto. Inténtalo de nuevo.');
     }
 }
 
 // ========================================
-// 🗑️ NIVEL 3: SEPARAR RESIDUOS
+// NIVEL 3: SEPARAR RESIDUOS
 // ========================================
 function startLevel3() {
     currentLevel = 3;
@@ -339,14 +442,14 @@ function startLevel3() {
     level3Hits = 0;
     level3Errors = 0;
     currentWasteItem = 0;
-    
+
     containers = [
         { id: 'organico', name: 'Orgánico', icon: '🍎', color: 'green' },
         { id: 'reciclable', name: 'Reciclable', icon: '♻️', color: 'blue' },
         { id: 'no_reciclable', name: 'No Reciclable', icon: '🚯', color: 'gray' },
         { id: 'peligroso', name: 'Peligroso', icon: '⚠️', color: 'red' }
     ];
-    
+
     wasteItems = [
         { id: 1, name: 'Cáscara de plátano', emoji: '🍌', type: 'organico' },
         { id: 2, name: 'Botella de plástico', emoji: '🍾', type: 'reciclable' },
@@ -364,9 +467,9 @@ function startLevel3() {
         { id: 14, name: 'Caja de cartón', emoji: '📦', type: 'reciclable' },
         { id: 15, name: 'Chicle', emoji: '🍬', type: 'no_reciclable' }
     ];
-    
+
     wasteItems = wasteItems.sort(() => Math.random() - 0.5);
-    
+
     document.getElementById('levelSelection').style.display = 'none';
     document.getElementById('gameScreen').innerHTML = `
         <div class="game-hud">
@@ -398,7 +501,7 @@ function startLevel3() {
         <div id="feedback" class="feedback"></div>
     `;
     document.getElementById('gameScreen').style.display = 'block';
-    
+
     renderContainers();
     showCurrentWaste();
     startTimer();
@@ -407,23 +510,23 @@ function startLevel3() {
 function renderContainers() {
     const zone = document.getElementById('containersZone');
     zone.innerHTML = '';
-    
+
     containers.forEach(container => {
         const containerEl = document.createElement('div');
         containerEl.className = `waste-container ${container.color}`;
         containerEl.id = `container-${container.id}`;
         containerEl.setAttribute('data-type', container.id);
-        
+
         containerEl.innerHTML = `
             <div class="container-icon">${container.icon}</div>
             <div class="container-name">${container.name}</div>
             <div class="container-count" id="count-${container.id}">0</div>
         `;
-        
+
         containerEl.ondragover = (e) => handleDragOver(e);
         containerEl.ondrop = (e) => handleDrop(e);
         containerEl.ondragleave = (e) => handleDragLeave(e);
-        
+
         zone.appendChild(containerEl);
     });
 }
@@ -433,23 +536,23 @@ function showCurrentWaste() {
         completeLevel3();
         return;
     }
-    
+
     const waste = wasteItems[currentWasteItem];
     const wasteEl = document.getElementById('currentWaste');
-    
+
     if (!wasteEl) return;
-    
+
     wasteEl.innerHTML = `
         <div class="waste-emoji">${waste.emoji}</div>
         <div class="waste-name">${waste.name}</div>
     `;
-    
+
     wasteEl.draggable = true;
     wasteEl.setAttribute('data-type', waste.type);
-    
+
     wasteEl.ondragstart = (e) => handleDragStart(e);
     wasteEl.ondragend = (e) => handleDragEnd(e);
-    
+
     document.getElementById('currentItem').textContent = currentWasteItem + 1;
     updateLevel3UI();
 }
@@ -468,12 +571,12 @@ function handleDragEnd(e) {
 function handleDragOver(e) {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    
+
     let target = e.target;
     while (target && !target.classList.contains('waste-container')) {
         target = target.parentElement;
     }
-    
+
     if (target) {
         target.classList.add('drag-over');
     }
@@ -484,7 +587,7 @@ function handleDragLeave(e) {
     while (target && !target.classList.contains('waste-container')) {
         target = target.parentElement;
     }
-    
+
     if (target && !target.contains(e.relatedTarget)) {
         target.classList.remove('drag-over');
     }
@@ -492,19 +595,19 @@ function handleDragLeave(e) {
 
 function handleDrop(e) {
     e.preventDefault();
-    
+
     let target = e.target;
     while (target && !target.classList.contains('waste-container')) {
         target = target.parentElement;
     }
-    
+
     if (!target) return;
-    
+
     target.classList.remove('drag-over');
-    
+
     const wasteType = e.dataTransfer.getData('text/plain');
     const containerType = target.getAttribute('data-type');
-    
+
     checkWasteClassification(wasteType, containerType);
 }
 
@@ -513,27 +616,27 @@ function checkWasteClassification(wasteType, containerType) {
         level3Score += 100;
         level3Hits++;
         showFeedback('¡Correcto! +100 puntos', 'success');
-        
+
         const countEl = document.getElementById(`count-${containerType}`);
         countEl.textContent = parseInt(countEl.textContent) + 1;
-        
+
         const container = document.getElementById(`container-${containerType}`);
         container.classList.add('container-success');
         setTimeout(() => container.classList.remove('container-success'), 500);
-        
+
     } else {
         level3Score -= 20;
         level3Errors++;
         showFeedback('¡Incorrecto! -20 puntos', 'error');
-        
+
         const container = document.getElementById(`container-${containerType}`);
         container.classList.add('container-error');
         setTimeout(() => container.classList.remove('container-error'), 500);
     }
-    
+
     currentWasteItem++;
     updateLevel3UI();
-    
+
     setTimeout(() => {
         showCurrentWaste();
     }, 1200);
@@ -547,14 +650,20 @@ function updateLevel3UI() {
 
 async function completeLevel3() {
     stopTimer();
-    
+
     const formattedTime = formatTime(timer);
-    await saveGameProgress(3, level3Score, true, formattedTime, level3Hits, level3Errors);
-    saveLevelReport(3, level3Score, level3Hits, level3Errors, formattedTime);
-    
+
+    console.log('Completando Nivel 3...');
+    const saved = await saveGameProgress(3, level3Score, true, formattedTime, level3Hits, level3Errors);
+
+    if (saved) {
+        saveLevelReport(3, level3Score, level3Hits, level3Errors, formattedTime);
+    }
+
     document.getElementById('gameScreen').innerHTML = `
         <div class="results-container">
-            <h2> ¡Nivel 3 Completado!</h2>
+            <h2>${saved ? '✅' : '⚠️'} ¡Nivel 3 Completado!</h2>
+            ${!saved ? '<p style="color: orange;">Progreso guardado localmente (revisar conexión)</p>' : ''}
             <div class="results-stats">
                 <div class="stat-item">
                     <span class="stat-label">Puntos Totales:</span>
@@ -582,7 +691,7 @@ async function completeLevel3() {
 }
 
 // ========================================
-// 🧠 NIVEL 4: TRIVIA AMBIENTAL
+// NIVEL 4: TRIVIA AMBIENTAL
 // ========================================
 function startLevel4() {
     currentLevel = 4;
@@ -592,7 +701,7 @@ function startLevel4() {
     triviaHits = 0;
     triviaErrors = 0;
     currentQuestion = 0;
-    
+
     triviaQuestions = [
         {
             question: '¿Cuánto tiempo tarda en descomponerse una botella de plástico?',
@@ -640,132 +749,126 @@ function startLevel4() {
             explanation: 'Una bolsa de plástico puede tardar entre 100 y 150 años en descomponerse.'
         }
     ];
-    
+
     triviaQuestions = triviaQuestions.sort(() => Math.random() - 0.5).slice(0, 5);
-    
+
     document.getElementById('levelSelection').style.display = 'none';
     document.getElementById('gameScreen').innerHTML = `
         <div class="game-hud">
             <h2>🧠 Nivel 4: Trivia Ambiental</h2>
             <div>
                 <span>Pregunta: <strong id="questionNumber">1</strong> de 5</span> | 
-                <span>Puntos: <strong id="score">0</strong></span> | 
-                <span>Tiempo: <strong id="timer">0:00</strong></span>
+                <span>
+                Puntos: <strong id="triviaScore">0</strong> | 
+                <span>Aciertos: <strong id="triviaHits">0</strong></span> | 
+                <span>Errores: <strong id="triviaErrors">0</strong></span> | 
+                Tiempo: <strong id="timer">0:00</strong>
             </div>
         </div>
-        
-        <div class="trivia-container">
-            <div id="triviaQuestion" class="trivia-question-box"></div>
-            <div id="triviaOptions" class="trivia-options"></div>
-            <div id="triviaExplanation" class="trivia-explanation" style="display:none;"></div>
-        </div>
-        
-        <div class="game-controls">
-            <button onclick="exitToMenu()" class="btn-secondary">Salir</button>
-        </div>
+        <div id="triviaContainer" class="trivia-container"></div>
+        <div id="triviaFeedback" class="feedback"></div>
+        <button onclick="exitToMenu()" class="btn-secondary">Salir</button>
     `;
     document.getElementById('gameScreen').style.display = 'block';
-    
-    showTriviaQuestion();
+
+    showQuestion();
     startTimer();
 }
 
-function showTriviaQuestion() {
+function showQuestion() {
     if (currentQuestion >= triviaQuestions.length) {
         completeLevel4();
         return;
     }
-    
-    const question = triviaQuestions[currentQuestion];
-    
-    document.getElementById('questionNumber').textContent = currentQuestion + 1;
-    document.getElementById('triviaQuestion').innerHTML = `
-        <div class="question-icon">❓</div>
-        <h3>${question.question}</h3>
-    `;
-    
-    const optionsContainer = document.getElementById('triviaOptions');
-    optionsContainer.innerHTML = '';
-    
-    question.options.forEach((option, index) => {
-        const optionEl = document.createElement('div');
-        optionEl.className = 'trivia-option';
-        optionEl.innerHTML = `
-            <span class="option-letter">${String.fromCharCode(65 + index)}</span>
-            <span class="option-text">${option.text}</span>
-        `;
-        optionEl.onclick = () => selectTriviaAnswer(index);
-        optionsContainer.appendChild(optionEl);
-    });
-    
-    document.getElementById('triviaExplanation').style.display = 'none';
-}
 
-function selectTriviaAnswer(optionIndex) {
-    const question = triviaQuestions[currentQuestion];
-    const selectedOption = question.options[optionIndex];
-    const optionsContainer = document.getElementById('triviaOptions');
-    const allOptions = optionsContainer.querySelectorAll('.trivia-option');
-    
-    allOptions.forEach(opt => opt.style.pointerEvents = 'none');
-    
-    allOptions[optionIndex].classList.add(selectedOption.correct ? 'correct' : 'incorrect');
-    
-    if (!selectedOption.correct) {
-        const correctIndex = question.options.findIndex(opt => opt.correct);
-        allOptions[correctIndex].classList.add('correct');
-        triviaErrors++;
-    } else {
-        triviaScore += 200;
-        triviaHits++;
-    }
-    
-    const explanationEl = document.getElementById('triviaExplanation');
-    explanationEl.innerHTML = `
-        <div class="explanation-icon">${selectedOption.correct ? '✅' : '❌'}</div>
-        <p>${selectedOption.correct ? '¡Correcto!' : '¡Incorrecto!'}</p>
-        <p class="explanation-text">${question.explanation}</p>
-        <button onclick="nextTriviaQuestion()" class="btn-primary">Siguiente Pregunta</button>
-    `;
-    explanationEl.style.display = 'block';
-    
+    const q = triviaQuestions[currentQuestion];
+    const container = document.getElementById('triviaContainer');
+    container.innerHTML = `
+    <div class="trivia-question-box">
+        <span class="question-icon">🌍</span>
+        <h3>${q.question}</h3>
+    </div>
+    <div class="trivia-options">
+        ${q.options.map((opt, index) => `
+            <div class="trivia-option" onclick="selectAnswer(${index})" data-index="${index}">
+                <div class="option-letter">${String.fromCharCode(65 + index)}</div>
+                <div class="option-text">${opt.text}</div>
+            </div>
+        `).join('')}
+    </div>
+`;
+
+    document.getElementById('questionNumber').textContent = currentQuestion + 1;
     updateTriviaUI();
 }
 
-function nextTriviaQuestion() {
-    currentQuestion++;
-    showTriviaQuestion();
+function selectAnswer(index) {
+    const q = triviaQuestions[currentQuestion];
+    const selectedOption = q.options[index];
+    const buttons = document.querySelectorAll('.trivia-option');
+
+    buttons.forEach(btn => btn.disabled = true);
+
+    if (selectedOption.correct) {
+        triviaScore += 100;
+        triviaHits++;
+        buttons[index].classList.add('correct');
+        showFeedback(`¡Correcto! +100 puntos<br><small>${q.explanation}</small>`, 'success');
+    } else {
+        triviaScore -= 20;
+        triviaErrors++;
+        buttons[index].classList.add('incorrect');
+
+        q.options.forEach((opt, i) => {
+            if (opt.correct) buttons[i].classList.add('correct');
+        });
+
+        showFeedback(`Incorrecto. -20 puntos<br><small>${q.explanation}</small>`, 'error');
+    }
+
+    updateTriviaUI();
+
+    setTimeout(() => {
+        currentQuestion++;
+        showQuestion();
+    }, 3000);
 }
 
 function updateTriviaUI() {
-    document.getElementById('score').textContent = triviaScore;
+    document.getElementById('triviaScore').textContent = triviaScore;
+    document.getElementById('triviaHits').textContent = triviaHits;
+    document.getElementById('triviaErrors').textContent = triviaErrors;
 }
+
+
 async function completeLevel4() {
     stopTimer();
-    
+
     const formattedTime = formatTime(timer);
-    await saveGameProgress(4, triviaScore, true, formattedTime, triviaHits, triviaErrors);
-    saveLevelReport(4, triviaScore, triviaHits, triviaErrors, formattedTime);
-    
+
+    console.log('Completando Nivel 4...');
+    const saved = await saveGameProgress(4, triviaScore, true, formattedTime, triviaHits, triviaErrors);
+
+    if (saved) {
+        saveLevelReport(4, triviaScore, triviaHits, triviaErrors, formattedTime);
+    }
+
     document.getElementById('gameScreen').innerHTML = `
         <div class="results-container">
-            <h2>🎉 ¡Nivel 4 Completado!</h2>
-            <div class="trivia-results-summary">
-                <div class="result-icon">${triviaHits >= 4 ? '🏆' : triviaHits >= 3 ? '🥈' : '🥉'}</div>
-                <h3>${triviaHits >= 4 ? '¡Excelente!' : triviaHits >= 3 ? '¡Muy bien!' : '¡Buen intento!'}</h3>
-            </div>
+            <h2>${saved ? '✅' : '⚠️'} ¡Nivel 4 Completado!</h2>
+            ${!saved ? '<p style="color: orange;">Progreso guardado localmente (revisar conexión)</p>' : ''}
             <div class="results-stats">
                 <div class="stat-item">
                     <span class="stat-label">Puntos Totales:</span>
                     <span class="stat-value">${triviaScore}</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Respuestas Correctas:</span>
+                    <span class="stat-label">Aciertos:</span>
                     <span class="stat-value">${triviaHits}/5</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Respuestas Incorrectas:</span>
-                    <span class="stat-value">${triviaErrors}/5</span>
+                    <span class="stat-label">Errores:</span>
+                    <span class="stat-value">${triviaErrors}</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-label">Tiempo:</span>
@@ -781,7 +884,7 @@ async function completeLevel4() {
 }
 
 // ========================================
-// ♻️ NIVEL 5: ¿SE RECICLA?
+// NIVEL 5: ¿SE RECICLA?
 // ========================================
 function startLevel5() {
     currentLevel = 5;
@@ -791,61 +894,40 @@ function startLevel5() {
     level5Hits = 0;
     level5Errors = 0;
     currentRecycleItem = 0;
-    
+
     recycleItems = [
-        { name: 'Botella de vidrio', emoji: '🍾', recyclable: true, explanation: 'El vidrio es 100% reciclable y puede reciclarse infinitas veces.' },
-        { name: 'Pañal usado', emoji: '🚼', recyclable: false, explanation: 'Los pañales usados NO se reciclan por contaminación biológica.' },
-        { name: 'Lata de aluminio', emoji: '🥫', recyclable: true, explanation: 'Las latas de aluminio son altamente reciclables y ahorran mucha energía.' },
-        { name: 'Papel higiénico', emoji: '🧻', recyclable: false, explanation: 'El papel higiénico NO se recicla por razones de higiene.' },
-        { name: 'Periódico', emoji: '📰', recyclable: true, explanation: 'El papel de periódico es completamente reciclable.' },
-        { name: 'Servilletas sucias', emoji: '🧻', recyclable: false, explanation: 'Las servilletas con restos de comida NO se reciclan.' },
-        { name: 'Caja de cartón', emoji: '📦', recyclable: true, explanation: 'El cartón limpio es 100% reciclable.' },
-        { name: 'Espejo roto', emoji: '🪞', recyclable: false, explanation: 'Los espejos NO se reciclan porque tienen recubrimientos químicos.' },
-        { name: 'Botella plástico', emoji: '🧴', recyclable: true, explanation: 'Las botellas son muy reciclables.' },
-        { name: 'Bombilla', emoji: '💡', recyclable: false, explanation: 'Las bombillas NO se reciclan en contenedores normales.' },
-        { name: 'Lata de conservas', emoji: '🥫', recyclable: true, explanation: 'Las latas de metal son completamente reciclables.' },
-        { name: 'Colilla de cigarro', emoji: '🚬', recyclable: false, explanation: 'Las colillas NO son reciclables y son muy contaminantes.' },
-        { name: 'Papel de oficina', emoji: '📄', recyclable: true, explanation: 'El papel blanco de oficina tiene alto valor de reciclaje.' },
-        { name: 'Cerámica rota', emoji: '🏺', recyclable: false, explanation: 'La cerámica NO se recicla en el sistema convencional.' },
-        { name: 'Botella de vino', emoji: '🍷', recyclable: true, explanation: 'Las botellas de vidrio se reciclan completamente.' }
+        { id: 1, name: 'Botella de vidrio', emoji: '🍾', recyclable: true, explanation: 'El vidrio es 100% reciclable' },
+        { id: 2, name: 'Papel de aluminio limpio', emoji: '📃', recyclable: true, explanation: 'El aluminio limpio se puede reciclar' },
+        { id: 3, name: 'Caja de pizza con grasa', emoji: '🍕', recyclable: false, explanation: 'La grasa contamina el reciclaje' },
+        { id: 4, name: 'Lata de refresco', emoji: '🥫', recyclable: true, explanation: 'Las latas de metal son reciclables' },
+        { id: 5, name: 'Bombillo', emoji: '💡', recyclable: false, explanation: 'Los bombillos son residuos peligrosos' },
+        { id: 6, name: 'Periódico', emoji: '📰', recyclable: true, explanation: 'El papel limpio es reciclable' },
+        { id: 7, name: 'Pañal usado', emoji: '👶', recyclable: false, explanation: 'Los pañales no son reciclables' },
+        { id: 8, name: 'Botella de plástico', emoji: '🧴', recyclable: true, explanation: 'El plástico es reciclable' },
+        { id: 9, name: 'Espejo roto', emoji: '🪞', recyclable: false, explanation: 'Los espejos contienen químicos' },
+        { id: 10, name: 'Cartón limpio', emoji: '📦', recyclable: true, explanation: 'El cartón limpio es reciclable' }
     ];
-    
-    recycleItems = recycleItems.sort(() => Math.random() - 0.5).slice(0, 15);
-    
+
+    recycleItems = recycleItems.sort(() => Math.random() - 0.5);
+
     document.getElementById('levelSelection').style.display = 'none';
     document.getElementById('gameScreen').innerHTML = `
         <div class="game-hud">
             <h2>♻️ Nivel 5: ¿Se Recicla?</h2>
             <div>
-                <span>Item: <strong id="itemNumber">1</strong> de ${recycleItems.length}</span> | 
-                <span>Puntos: <strong id="score">0</strong></span> | 
-                <span>Aciertos: <strong id="hits">0</strong></span> |
-                <span>Errores: <strong id="errors">0</strong></span> |
+                <span>Pregunta: <strong id="itemNumber">1</strong> de 10</span> | 
+                <span>Puntos: <strong id="level5Score">0</strong></span> | 
+                <span>Aciertos: <strong id="level5Hits">0</strong></span> | 
+                <span>Errores: <strong id="level5Errors">0</strong></span> | 
                 <span>Tiempo: <strong id="timer">0:00</strong></span>
             </div>
         </div>
-        
-        <div class="recycle-container">
-            <div id="recycleItemDisplay" class="recycle-item-display"></div>
-            <div class="recycle-buttons">
-                <button class="recycle-btn yes-btn" onclick="answerRecycle(true)">
-                    <span class="btn-icon">✅</span>
-                    <span class="btn-text">SE RECICLA</span>
-                </button>
-                <button class="recycle-btn no-btn" onclick="answerRecycle(false)">
-                    <span class="btn-icon">❌</span>
-                    <span class="btn-text">NO SE RECICLA</span>
-                </button>
-            </div>
-            <div id="recycleExplanation" class="recycle-explanation" style="display:none;"></div>
-        </div>
-        
-        <div class="game-controls">
-            <button onclick="exitToMenu()" class="btn-secondary">Salir</button>
-        </div>
+        <div id="recycleContainer" class="recycle-container"></div>
+        <div id="recycleFeedback" class="feedback"></div>
+        <button onclick="exitToMenu()" class="btn-secondary">Salir</button>
     `;
     document.getElementById('gameScreen').style.display = 'block';
-    
+
     showRecycleItem();
     startTimer();
 }
@@ -855,111 +937,104 @@ function showRecycleItem() {
         completeLevel5();
         return;
     }
-    
+
     const item = recycleItems[currentRecycleItem];
-    
-    document.getElementById('itemNumber').textContent = currentRecycleItem + 1;
-    document.getElementById('recycleItemDisplay').innerHTML = `
+    const container = document.getElementById('recycleContainer');
+    container.innerHTML = `
+    <div class="recycle-item-display">
         <div class="recycle-emoji">${item.emoji}</div>
-        <h3 class="recycle-item-name">${item.name}</h3>
-        <p class="recycle-question">¿Este objeto se puede reciclar?</p>
-    `;
-    
-    document.getElementById('recycleExplanation').style.display = 'none';
-    
-    const buttons = document.querySelectorAll('.recycle-btn');
-    buttons.forEach(btn => {
-        btn.disabled = false;
-        btn.classList.remove('correct', 'incorrect');
-    });
+        <div class="recycle-item-name">${item.name}</div>
+        <p class="recycle-question">¿Este material es reciclable?</p>
+    </div>
+    <div class="recycle-buttons">
+        <button class="recycle-btn yes-btn" onclick="answerRecycle(true)">
+            <span class="btn-icon">✅</span>
+            <span class="btn-text">SÍ, es reciclable</span>
+        </button>
+        <button class="recycle-btn no-btn" onclick="answerRecycle(false)">
+            <span class="btn-icon">❌</span>
+            <span class="btn-text">NO es reciclable</span>
+        </button>
+    </div>
+`;
+
+    document.getElementById('itemNumber').textContent = currentRecycleItem + 1;
+    updateLevel5UI();
 }
 
-function answerRecycle(userAnswer) {
+function answerRecycle(answer) {
     const item = recycleItems[currentRecycleItem];
-    const isCorrect = userAnswer === item.recyclable;
-    
     const buttons = document.querySelectorAll('.recycle-btn');
+    
     buttons.forEach(btn => btn.disabled = true);
     
-    const yesBtn = document.querySelector('.yes-btn');
-    const noBtn = document.querySelector('.no-btn');
-    
-    if (userAnswer) {
-        yesBtn.classList.add(isCorrect ? 'correct' : 'incorrect');
-    } else {
-        noBtn.classList.add(isCorrect ? 'correct' : 'incorrect');
-    }
-    
-    if (!isCorrect) {
-        if (item.recyclable) {
-            yesBtn.classList.add('correct');
-        } else {
-            noBtn.classList.add('correct');
+    // Marcar visualmente el botón correcto/incorrecto
+    buttons.forEach(btn => {
+        if (answer === true && btn.classList.contains('yes-btn')) {
+            btn.classList.add(answer === item.recyclable ? 'correct' : 'incorrect');
+        } else if (answer === false && btn.classList.contains('no-btn')) {
+            btn.classList.add(answer === item.recyclable ? 'correct' : 'incorrect');
         }
-    }
+        
+        // Mostrar el botón correcto
+        if ((item.recyclable && btn.classList.contains('yes-btn')) || 
+            (!item.recyclable && btn.classList.contains('no-btn'))) {
+            btn.classList.add('correct');
+        }
+    });
     
-    if (isCorrect) {
+    if (answer === item.recyclable) {
         level5Score += 100;
         level5Hits++;
+        showFeedback(`¡Correcto! +100 puntos<br><small>${item.explanation}</small>`, 'success');
     } else {
         level5Score -= 20;
         level5Errors++;
+        showFeedback(`Incorrecto. -20 puntos<br><small>${item.explanation}</small>`, 'error');
     }
     
     updateLevel5UI();
     
-    const explanationEl = document.getElementById('recycleExplanation');
-    explanationEl.innerHTML = `
-        <div class="explanation-icon">${isCorrect ? '✅' : '❌'}</div>
-        <h4>${isCorrect ? '¡Correcto!' : '¡Incorrecto!'}</h4>
-        <p class="explanation-detail">${item.explanation}</p>
-        <button onclick="nextRecycleItem()" class="btn-primary">
-            ${currentRecycleItem < recycleItems.length - 1 ? 'Siguiente' : 'Ver Resultados'}
-        </button>
-    `;
-    explanationEl.style.display = 'block';
-}
-
-function nextRecycleItem() {
-    currentRecycleItem++;
-    showRecycleItem();
+    setTimeout(() => {
+        currentRecycleItem++;
+        showRecycleItem();
+    }, 2500);
 }
 
 function updateLevel5UI() {
-    document.getElementById('score').textContent = level5Score;
-    document.getElementById('hits').textContent = level5Hits;
-    document.getElementById('errors').textContent = level5Errors;
+    document.getElementById('level5Score').textContent = level5Score;
+    document.getElementById('level5Hits').textContent = level5Hits;
+    document.getElementById('level5Errors').textContent = level5Errors;
 }
 
 async function completeLevel5() {
     stopTimer();
-    
+
     const formattedTime = formatTime(timer);
-    await saveGameProgress(5, level5Score, true, formattedTime, level5Hits, level5Errors);
-    saveLevelReport(5, level5Score, level5Hits, level5Errors, formattedTime);
-    
-    const percentage = Math.round((level5Hits / recycleItems.length) * 100);
-    
+
+    console.log('Completando Nivel 5...');
+    const saved = await saveGameProgress(5, level5Score, true, formattedTime, level5Hits, level5Errors);
+
+    if (saved) {
+        saveLevelReport(5, level5Score, level5Hits, level5Errors, formattedTime);
+    }
+
     document.getElementById('gameScreen').innerHTML = `
         <div class="results-container">
-            <h2>🎉 ¡Nivel 5 Completado!</h2>
-            <div class="trivia-results-summary">
-                <div class="result-icon">${percentage >= 80 ? '🏆' : percentage >= 60 ? '🥈' : '🥉'}</div>
-                <h3>${percentage >= 80 ? '¡Experto en reciclaje!' : percentage >= 60 ? '¡Buen trabajo!' : '¡Sigue aprendiendo!'}</h3>
-                <p class="percentage-text">${percentage}% de aciertos</p>
-            </div>
+            <h2>${saved ? '✅' : '⚠️'} ¡Nivel 5 Completado!</h2>
+            ${!saved ? '<p style="color: orange;">Progreso guardado localmente (revisar conexión)</p>' : ''}
             <div class="results-stats">
                 <div class="stat-item">
                     <span class="stat-label">Puntos Totales:</span>
                     <span class="stat-value">${level5Score}</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Respuestas Correctas:</span>
-                    <span class="stat-value">${level5Hits}/${recycleItems.length}</span>
+                    <span class="stat-label">Aciertos:</span>
+                    <span class="stat-value">${level5Hits}/10</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Respuestas Incorrectas:</span>
-                    <span class="stat-value">${level5Errors}/${recycleItems.length}</span>
+                    <span class="stat-label">Errores:</span>
+                    <span class="stat-value">${level5Errors}</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-label">Tiempo:</span>
@@ -975,90 +1050,59 @@ async function completeLevel5() {
 }
 
 // ========================================
-// ⏱️ FUNCIONES AUXILIARES
+// FUNCIONES DE UTILIDAD
 // ========================================
+
+function showFeedback(message, type) {
+    let feedbackEl = document.getElementById('feedback') ||
+        document.getElementById('triviaFeedback') ||
+        document.getElementById('recycleFeedback');
+
+    if (!feedbackEl) return;
+
+    feedbackEl.innerHTML = message;
+    feedbackEl.className = `feedback ${type}`;
+    feedbackEl.style.display = 'block';
+
+    setTimeout(() => {
+        feedbackEl.style.display = 'none';
+    }, 2500);
+}
+
 function startTimer() {
+    timer = 0;
     timerInterval = setInterval(() => {
         timer++;
-        const m = Math.floor(timer / 60);
-        const s = timer % 60;
         const timerEl = document.getElementById('timer');
-        if (timerEl) timerEl.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+        if (timerEl) {
+            timerEl.textContent = formatTime(timer);
+        }
     }, 1000);
 }
 
 function stopTimer() {
-    clearInterval(timerInterval);
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
 }
 
 function formatTime(seconds) {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, '0')}`;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
 function exitToMenu() {
     stopTimer();
     document.getElementById('gameScreen').style.display = 'none';
-    document.getElementById('gameScreen').innerHTML = '';
     document.getElementById('levelSelection').style.display = 'block';
     showLevelMenu();
 }
 
 function logout() {
-    localStorage.clear();
-    window.location.href = 'login.html';
-}
-
-function showFeedback(message, type) {
-    const feedback = document.getElementById('feedback');
-    if (!feedback) return;
-    
-    feedback.textContent = message;
-    feedback.className = `feedback ${type} show`;
-    
-    setTimeout(() => {
-        feedback.classList.remove('show');
-    }, 1000);
-}
-
-
-// ========================================
-//  GUARDAR PROGRESO EN MONGODB
-// ========================================
-async function saveGameProgress(levelId, score, completed, time, hits = 0, errors = 0) {
-    // CORREGIDO: Leer el usuario correctamente
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-
-    if (!user.userId) {
-        console.error('❌ No hay usuario logueado');
-        return;
-    }
-
-    try {
-        const response = await fetch(`${CONFIG.API_URL}/game/save-progress`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                userId: user.userId,
-                username: user.username,
-                levelId: levelId,
-                score: score,
-                completed: completed,
-                time: time,
-                hits: hits,
-                errors: errors
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            console.log('✅ Progreso guardado en MongoDB:', data);
-        } else {
-            console.error('❌ Error guardando:', data.error);
-        }
-    } catch (error) {
-        console.error('❌ Error de conexión guardando progreso:', error);
+    if (confirm('¿Seguro que quieres cerrar sesión?')) {
+        localStorage.clear();
+        window.location.href = 'login.html';
     }
 }

@@ -4,6 +4,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
 const mongoose = require('mongoose');
+const os = require('os');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,21 +15,21 @@ mongoose.connect(process.env.MONGODB_URI)
   console.log('✅ Conectado a MongoDB');
 })
 .catch((error) => {
-  console.error('❌ Error conectando a MongoDB:', error);
+  console.error(' Error conectando a MongoDB:', error);
   process.exit(1);
 });
 
 // Eventos de conexión
 mongoose.connection.on('connected', () => {
-  console.log('🔗 Mongoose conectado a MongoDB');
+  console.log(' Mongoose conectado a MongoDB');
 });
 
 mongoose.connection.on('error', (err) => {
-  console.error('❌ Error de conexión MongoDB:', err);
+  console.error(' Error de conexión MongoDB:', err);
 });
 
 mongoose.connection.on('disconnected', () => {
-  console.log('⚠️ Mongoose desconectado de MongoDB');
+  console.log(' Mongoose desconectado de MongoDB');
 });
 
 // ===== Middleware =====
@@ -77,18 +78,36 @@ app.use((req, res) => {
   });
 });
 
+// ===== Función para obtener la IP local =====
+function getLocalIP() {
+  const networkInterfaces = os.networkInterfaces();
+  
+  for (const interfaceName in networkInterfaces) {
+    const interfaces = networkInterfaces[interfaceName];
+    for (const iface of interfaces) {
+      // Buscar IPv4 que no sea interna (localhost)
+      if (iface.family === 'IPv4' && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  
+  return 'localhost';
+}
+
 // ===== Iniciar servidor =====
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🎮 Servidor BattleTrash corriendo en http://192.168.1.8:${PORT}`);
-  console.log(`📁 Frontend disponible en http://192.168.1.8:${PORT}`);
-  console.log(`🔌 API disponible en http://192.168.1.8:${PORT}/api`);
+  const localIP = getLocalIP();
+  console.log(` Servidor BattleTrash corriendo en http://${localIP}:${PORT}`);
+  console.log(` Frontend disponible en http://${localIP}:${PORT}`);
+  console.log(` API disponible en http://${localIP}:${PORT}/api`);
 });
 
 // Manejo de cierre graceful
 process.on('SIGINT', async () => {
-  console.log('\n⚠️ Cerrando servidor...');
+  console.log('\n Cerrando servidor...');
   await mongoose.connection.close();
-  console.log('✅ Conexión a MongoDB cerrada');
+  console.log(' Conexión a MongoDB cerrada');
   process.exit(0);
 });
 
