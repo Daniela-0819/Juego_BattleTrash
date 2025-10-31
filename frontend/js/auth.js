@@ -1,5 +1,7 @@
-﻿// Configuración de la API
-const API_URL = 'http://192.168.1.8:3000/api';  
+﻿// Configuración de la API - Se adapta automáticamente al entorno
+const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:3000/api'
+  : `http://${window.location.hostname}:3000/api`; 
 document.addEventListener("DOMContentLoaded", () => {
   // Elementos del DOM
   const loginSection = document.getElementById("loginSection");
