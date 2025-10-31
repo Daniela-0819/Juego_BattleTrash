@@ -78,10 +78,10 @@ app.use((req, res) => {
 });
 
 // ===== Iniciar servidor =====
-app.listen(PORT, () => {
-  console.log(`🎮 Servidor BattleTrash corriendo en http://localhost:${PORT}`);
-  console.log(`📁 Frontend disponible en http://localhost:${PORT}`);
-  console.log(`🔌 API disponible en http://localhost:${PORT}/api`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🎮 Servidor BattleTrash corriendo en http://192.168.1.8:${PORT}`);
+  console.log(`📁 Frontend disponible en http://192.168.1.8:${PORT}`);
+  console.log(`🔌 API disponible en http://192.168.1.8:${PORT}/api`);
 });
 
 // Manejo de cierre graceful

@@ -1,6 +1,5 @@
 ﻿// Configuración de la API
-const API_URL = 'http://localhost:3000/api';
-
+const API_URL = 'http://192.168.1.8:3000/api';  
 document.addEventListener("DOMContentLoaded", () => {
   // Elementos del DOM
   const loginSection = document.getElementById("loginSection");
