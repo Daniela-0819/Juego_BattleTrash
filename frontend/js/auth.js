@@ -1,13 +1,16 @@
-﻿// Configuracion de la API
+﻿// Configuración de la API
 const API_URL = 'http://localhost:3000/api';
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Elementos del DOM
   const loginSection = document.getElementById("loginSection");
   const registerSection = document.getElementById("registerSection");
   const loginForm = document.getElementById("loginForm");
   const registerForm = document.getElementById("registerForm");
+  const showRegisterLink = document.getElementById("showRegister");
+  const showLoginLink = document.getElementById("showLogin");
 
-  // ---Detectar si la URL incluye ?register=true ---
+  // Detectar si la URL incluye ?register=true
   const urlParams = new URLSearchParams(window.location.search);
   const showRegister = urlParams.get("register");
 
@@ -16,10 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     registerSection.style.display = "block";
   }
 
-  // ---Alternar entre login y registro manualmente ---
-  const showRegisterLink = document.getElementById("showRegister");
-  const showLoginLink = document.getElementById("showLogin");
-
+  // Alternar entre login y registro
   showRegisterLink.addEventListener("click", (e) => {
     e.preventDefault();
     loginSection.style.display = "none";
@@ -32,76 +32,24 @@ document.addEventListener("DOMContentLoaded", () => {
     loginSection.style.display = "block";
   });
 
-  // ---Lógica del formulario de login ---
-  loginForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
-
-    if (username === "" || password === "") {
-      alert("Por favor completa todos los campos");
-      return;
-    }
-
-    // Aquí puedes agregar la validación o conexión con backend
-    alert(`Bienvenido, ${username}!`);
-  });
-
-  // ---Lógica del formulario de registro ---
-  registerForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const regUsername = document.getElementById("regUsername").value;
-    const regEmail = document.getElementById("regEmail").value;
-    const regPassword = document.getElementById("regPassword").value;
-
-    if (regUsername === "" || regEmail === "" || regPassword === "") {
-      alert("Por favor completa todos los campos");
-      return;
-    }
-
-    // Aquí puedes agregar la lógica para guardar el usuario
-    alert(`Cuenta creada para ${regUsername}!`);
-    // Después de registrarse, mostrar login:
-    registerSection.style.display = "none";
-    loginSection.style.display = "block";
-  });
-});
-
-
-// Elementos del DOM para Login
-const loginForm = document.getElementById('loginForm');
-const registerForm = document.getElementById('registerForm');
-const showRegisterLink = document.getElementById('showRegister');
-const showLoginLink = document.getElementById('showLogin');
-const loginSection = document.getElementById('loginSection');
-const registerSection = document.getElementById('registerSection');
-
-// Mostrar formulario de registro
-if (showRegisterLink) {
-  showRegisterLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    loginSection.style.display = 'none';
-    registerSection.style.display = 'block';
-  });
-}
-
-// Mostrar formulario de login
-if (showLoginLink) {
-  showLoginLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    registerSection.style.display = 'none';
-    loginSection.style.display = 'block';
-  });
-}
-
-// Manejo del registro
-if (registerForm) {
-  registerForm.addEventListener('submit', async (e) => {
+  // ========== REGISTRO ==========
+  registerForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     
-    const username = document.getElementById('regUsername').value;
-    const email = document.getElementById('regEmail').value;
+    const username = document.getElementById('regUsername').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
     const password = document.getElementById('regPassword').value;
+
+    // Validaciones básicas
+    if (username === "" || email === "" || password === "") {
+      alert("Por favor completa todos los campos");
+      return;
+    }
+
+    if (password.length < 6) {
+      alert("La contraseña debe tener al menos 6 caracteres");
+      return;
+    }
     
     try {
       const response = await fetch(`${API_URL}/auth/register`, {
@@ -115,27 +63,30 @@ if (registerForm) {
       const data = await response.json();
       
       if (response.ok) {
-        alert('Registro exitoso! Ahora puedes iniciar sesion.');
+        alert('✅ Registro exitoso! Ahora puedes iniciar sesión.');
         registerSection.style.display = 'none';
         loginSection.style.display = 'block';
         registerForm.reset();
       } else {
-        alert('Error: ' + data.error);
+        alert('❌ Error: ' + data.error);
       }
     } catch (error) {
       console.error('Error en registro:', error);
-      alert('Error de conexion. Verifica que el servidor este corriendo.');
+      alert('❌ Error de conexión. Verifica que el servidor esté corriendo en http://localhost:3000');
     }
   });
-}
 
-// Manejo del login
-if (loginForm) {
-  loginForm.addEventListener('submit', async (e) => {
+  // ========== LOGIN ==========
+  loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     
-    const username = document.getElementById('username').value;
+    const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
+
+    if (username === "" || password === "") {
+      alert("Por favor completa todos los campos");
+      return;
+    }
     
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
@@ -149,18 +100,30 @@ if (loginForm) {
       const data = await response.json();
       
       if (response.ok) {
-        // Guardar token y usuario en localStorage
+        // CORREGIDO: Guardar datos del usuario en el formato que espera game-new.js
+        const userData = {
+          userId: data.user.userId,
+          username: data.user.username,
+          email: data.user.email
+        };
+        
+        // Guardar token
         localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        // Guardar usuario como objeto JSON (importante!)
+        localStorage.setItem('user', JSON.stringify(userData));
+
+        console.log('✅ Login exitoso:', userData);
+        console.log('✅ Token guardado:', data.token);
         
         // Redirigir al juego
         window.location.href = 'game.html';
       } else {
-        alert('Error: ' + data.error);
+        alert('❌ Error: ' + data.error);
       }
     } catch (error) {
       console.error('Error en login:', error);
-      alert('Error de conexion. Verifica que el servidor este corriendo.');
+      alert('❌ Error de conexión. Verifica que el servidor esté corriendo en http://localhost:3000');
     }
   });
-}
+});

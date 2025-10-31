@@ -6,99 +6,18 @@
     <title>BattleTrash - Juego</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="game-body">
+    <!-- Pantalla de selección de niveles -->
     <div id="levelSelection" class="level-selection">
-        <div class="header">
-            <h1>🌍 BattleTrash</h1>
-            <div class="user-info">
-                <span id="userName"></span>
-                <button onclick="logout()" class="btn-logout">Salir</button>
-            </div>
-        </div>
-        
-        <h2>Selecciona un Nivel</h2>
-        <div id="levelsContainer" class="levels-grid"></div>
+        <!-- El contenido se genera dinámicamente desde showLevelMenu() -->
     </div>
 
+    <!-- Pantalla del juego (se genera dinámicamente según el nivel) -->
     <div id="gameScreen" class="game-screen" style="display: none;">
-        <div class="game-hud">
-            <div class="hud-left">
-                <span>Nivel: <strong id="currentLevel"></strong></span>
-                <span>Tiempo: <strong id="timer">0:00</strong></span>
-            </div>
-            <div class="hud-center">
-                <h2 id="levelName"></h2>
-            </div>
-            <div class="hud-right">
-                <span>Puntos: <strong id="score">0</strong></span>
-                <span>Aciertos: <strong id="hits">0</strong></span>
-                <span>Errores: <strong id="errors">0</strong></span>
-            </div>
-        </div>
-
-        <div class="game-area">
-            <div class="waste-display">
-                <h3>Clasifica este residuo:</h3>
-                <div id="wasteItem" class="waste-item"></div>
-            </div>
-
-            <div class="containers-row">
-                <div class="bin green" onclick="checkAnswer('organico')">
-                    <span class="bin-icon">🍎</span>
-                    <p>Organico</p>
-                </div>
-                <div class="bin blue" onclick="checkAnswer('reciclable')">
-                    <span class="bin-icon">♻️</span>
-                    <p>Reciclable</p>
-                </div>
-                <div class="bin gray" onclick="checkAnswer('no_reciclable')">
-                    <span class="bin-icon">🗑️</span>
-                    <p>No Reciclable</p>
-                </div>
-                <div class="bin red" onclick="checkAnswer('peligroso')">
-                    <span class="bin-icon">⚠️</span>
-                    <p>Peligroso</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="game-controls">
-            <button onclick="pauseGame()" class="btn-secondary">Pausar</button>
-            <button onclick="exitToLevels()" class="btn-secondary">Salir</button>
-        </div>
+        <!-- El contenido se genera dinámicamente desde startLevel1(), startLevel2(), etc. -->
     </div>
 
-    <div id="resultsScreen" class="results-screen" style="display: none;">
-        <div class="results-container">
-            <h2 id="resultsTitle"></h2>
-            <div class="results-stats">
-                <div class="stat-item">
-                    <span class="stat-label">Puntos:</span>
-                    <span class="stat-value" id="finalScore">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Aciertos:</span>
-                    <span class="stat-value" id="finalHits">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Errores:</span>
-                    <span class="stat-value" id="finalErrors">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Tiempo:</span>
-                    <span class="stat-value" id="finalTime">0:00</span>
-                </div>
-            </div>
-            <div class="results-buttons">
-                <button onclick="retryLevel()" class="btn-primary">Reintentar</button>
-                <button onclick="nextLevel()" class="btn-primary">Siguiente</button>
-                <button onclick="exitToLevels()" class="btn-secondary">Menu</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="feedback" class="feedback"></div>
-
+    <!-- Scripts -->
     <script src="js/config.js"></script>
     <script src="js/game-new.js"></script>
 </body>

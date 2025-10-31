@@ -1,11 +1,8 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-
-// Almacenamiento temporal en memoria (se pierde al reiniciar)
-const users = new Map();
-
-// Clave secreta para JWT (en producción debería estar en variables de entorno)
-const JWT_SECRET = 'tu_clave_secreta_super_segura_123';
+// En backend/controllers/authController.js
+const User = require('../models/User');  // ../ significa "subir un nivel"
+const JWT_SECRET = process.env.JWT_SECRET || 'tu_clave_secreta_super_segura_123';
 
 // Registro de usuario
 const register = async (req, res) => {
@@ -19,27 +16,45 @@ const register = async (req, res) => {
       });
     }
 
-    // Verificar si el usuario ya existe
-    if (users.has(username)) {
+    // Validar longitud de contraseña
+    if (password.length < 6) {
       return res.status(400).json({ 
-        error: 'El usuario ya existe' 
+        error: 'La contraseña debe tener al menos 6 caracteres' 
+      });
+    }
+
+    // Verificar si el usuario ya existe
+    const existingUser = await User.findOne({ 
+      $or: [{ username }, { email }] 
+    });
+
+    if (existingUser) {
+      if (existingUser.username === username) {
+        return res.status(400).json({ 
+          error: 'El nombre de usuario ya está en uso' 
+        });
+      }
+      return res.status(400).json({ 
+        error: 'El email ya está registrado' 
       });
     }
 
     // Encriptar contraseña
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Guardar usuario
-    users.set(username, {
+    // Crear y guardar usuario
+    const newUser = new User({
       username,
       email,
-      password: hashedPassword,
-      createdAt: new Date()
+      password: hashedPassword
     });
+
+    await newUser.save();
 
     res.status(201).json({ 
       message: 'Usuario registrado exitosamente',
-      username 
+      username,
+      userId: newUser._id
     });
 
   } catch (error) {
@@ -63,7 +78,7 @@ const login = async (req, res) => {
     }
 
     // Buscar usuario
-    const user = users.get(username);
+    const user = await User.findOne({ username });
     if (!user) {
       return res.status(401).json({ 
         error: 'Credenciales inválidas' 
@@ -80,7 +95,10 @@ const login = async (req, res) => {
 
     // Generar token
     const token = jwt.sign(
-      { username: user.username },
+      { 
+        userId: user._id,
+        username: user.username 
+      },
       JWT_SECRET,
       { expiresIn: '24h' }
     );
@@ -89,6 +107,7 @@ const login = async (req, res) => {
       message: 'Login exitoso',
       token,
       user: {
+        userId: user._id,
         username: user.username,
         email: user.email
       }
@@ -102,12 +121,20 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = {
-  register,
-  login
-};
-const getAllUsers = (req, res) => {
-  res.json(Array.from(users.entries()).map(([username, user]) => user));
+// Obtener todos los usuarios (para debugging)
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, '-password'); // Excluir contraseñas
+    res.json({ 
+      count: users.length,
+      users 
+    });
+  } catch (error) {
+    console.error('Error obteniendo usuarios:', error);
+    res.status(500).json({ 
+      error: 'Error al obtener usuarios' 
+    });
+  }
 };
 
 module.exports = {

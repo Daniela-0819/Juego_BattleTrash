@@ -1,20 +1,69 @@
-﻿
+﻿// ========================================
+// VARIABLES GLOBALES
+// ========================================
 let currentLevel = null;
 let score = 0;
 let timer = 0;
 let timerInterval = null;
 
-// Inicializar
+// Nivel 1
+let memoryCards = [];
+let flippedCards = [];
+let matchedPairs = 0;
+
+// Nivel 2
+let plantSteps = [];
+let draggedIndex = null;
+
+// Nivel 3
+let wasteItems = [];
+let containers = [];
+let currentWasteItem = 0;
+let level3Score = 0;
+let level3Hits = 0;
+let level3Errors = 0;
+
+// Nivel 4
+let triviaQuestions = [];
+let currentQuestion = 0;
+let triviaScore = 0;
+let triviaHits = 0;
+let triviaErrors = 0;
+
+// Nivel 5
+let level5Score = 0;
+let level5Hits = 0;
+let level5Errors = 0;
+let currentRecycleItem = 0;
+let recycleItems = [];
+
+// ========================================
+// INICIALIZACIÓN
+// ========================================
 window.addEventListener('DOMContentLoaded', () => {
+    // CORREGIDO: Leer el usuario como objeto JSON
     const user = JSON.parse(localStorage.getItem('user') || '{}');
-    if (!user.username) {
+    
+    console.log('Usuario cargado:', user); // Para debug
+    
+    if (!user.username || !user.userId) {
+        console.log('No hay sesión activa, redirigiendo al login...');
         window.location.href = 'login.html';
         return;
     }
-    document.getElementById('userName').textContent = user.username;
+    
+    // Actualizar el nombre de usuario en la interfaz
+    const userNameElement = document.getElementById('userName');
+    if (userNameElement) {
+        userNameElement.textContent = user.username;
+    }
+    
     showLevelMenu();
 });
 
+// ========================================
+// MENÚ PRINCIPAL
+// ========================================
 function showLevelMenu() {
     document.getElementById('levelSelection').innerHTML = `
         <div class="header">
@@ -65,11 +114,9 @@ function showLevelMenu() {
     `;
 }
 
+// ========================================
 // 🃏 NIVEL 1: MEMORY GAME
-let memoryCards = [];
-let flippedCards = [];
-let matchedPairs = 0;
-
+// ========================================
 function startLevel1() {
     currentLevel = 1;
     score = 0;
@@ -167,16 +214,15 @@ async function completeLevel1() {
     alert(`¡Nivel Completado! Puntos: ${score}`);
 
     const formattedTime = formatTime(timer);
-    await saveGameProgress(currentLevel, score, true, formattedTime);
-    saveLevelReport(currentLevel, score, 6, 0, formattedTime);
+    await saveGameProgress(1, score, true, formattedTime, 6, 0);
+    saveLevelReport(1, score, 6, 0, formattedTime);
 
     exitToMenu();
 }
 
+// ========================================
 // 🌱 NIVEL 2: ORDENAR PASOS
-let plantSteps = [];
-let draggedIndex = null;
-
+// ========================================
 function startLevel2() {
     currentLevel = 2;
     score = 0;
@@ -273,8 +319,8 @@ async function checkOrder() {
         alert('¡Perfecto! Ordenaste correctamente todos los pasos. Puntos: ' + score);
 
         const formattedTime = formatTime(timer);
-        await saveGameProgress(currentLevel, score, true, formattedTime);
-        saveLevelReport(currentLevel, score, 6, 0, formattedTime);
+        await saveGameProgress(2, score, true, formattedTime, 6, 0);
+        saveLevelReport(2, score, 6, 0, formattedTime);
 
         exitToMenu();
     } else {
@@ -282,14 +328,9 @@ async function checkOrder() {
     }
 }
 
+// ========================================
 // 🗑️ NIVEL 3: SEPARAR RESIDUOS
-let wasteItems = [];
-let containers = [];
-let currentWasteItem = 0;
-let level3Score = 0;
-let level3Hits = 0;
-let level3Errors = 0;
-
+// ========================================
 function startLevel3() {
     currentLevel = 3;
     score = 0;
@@ -508,7 +549,7 @@ async function completeLevel3() {
     stopTimer();
     
     const formattedTime = formatTime(timer);
-    await saveGameProgress(3, level3Score, true, formattedTime);
+    await saveGameProgress(3, level3Score, true, formattedTime, level3Hits, level3Errors);
     saveLevelReport(3, level3Score, level3Hits, level3Errors, formattedTime);
     
     document.getElementById('gameScreen').innerHTML = `
@@ -540,13 +581,9 @@ async function completeLevel3() {
     `;
 }
 
+// ========================================
 // 🧠 NIVEL 4: TRIVIA AMBIENTAL
-let triviaQuestions = [];
-let currentQuestion = 0;
-let triviaScore = 0;
-let triviaHits = 0;
-let triviaErrors = 0;
-
+// ========================================
 function startLevel4() {
     currentLevel = 4;
     score = 0;
@@ -601,46 +638,9 @@ function startLevel4() {
                 { text: '500 años', correct: false }
             ],
             explanation: 'Una bolsa de plástico puede tardar entre 100 y 150 años en descomponerse.'
-        },
-        {
-            question: '¿Qué gas de efecto invernadero es el más abundante?',
-            options: [
-                { text: 'Metano', correct: false },
-                { text: 'Dióxido de carbono (CO2)', correct: true },
-                { text: 'Óxido nitroso', correct: false }
-            ],
-            explanation: 'El dióxido de carbono es el gas de efecto invernadero más abundante producido por actividades humanas.'
-        },
-        {
-            question: '¿Cuántos litros de agua se ahorran al reciclar un kilo de papel?',
-            options: [
-                { text: '10 litros', correct: false },
-                { text: '50 litros', correct: true },
-                { text: '200 litros', correct: false }
-            ],
-            explanation: 'Reciclar un kilo de papel ahorra aproximadamente 50 litros de agua.'
-        },
-        {
-            question: '¿Qué residuo es el más generado a nivel mundial?',
-            options: [
-                { text: 'Plástico', correct: false },
-                { text: 'Residuos orgánicos', correct: true },
-                { text: 'Vidrio', correct: false }
-            ],
-            explanation: 'Los residuos orgánicos representan casi el 50% de todos los residuos generados a nivel mundial.'
-        },
-        {
-            question: '¿Cuántas veces se puede reciclar el vidrio?',
-            options: [
-                { text: '5 veces', correct: false },
-                { text: '100 veces', correct: false },
-                { text: 'Infinitas veces', correct: true }
-            ],
-            explanation: 'El vidrio se puede reciclar infinitas veces sin perder calidad ni pureza.'
         }
     ];
     
-    // Seleccionar 5 preguntas aleatorias
     triviaQuestions = triviaQuestions.sort(() => Math.random() - 0.5).slice(0, 5);
     
     document.getElementById('levelSelection').style.display = 'none';
@@ -707,13 +707,10 @@ function selectTriviaAnswer(optionIndex) {
     const optionsContainer = document.getElementById('triviaOptions');
     const allOptions = optionsContainer.querySelectorAll('.trivia-option');
     
-    // Deshabilitar todas las opciones
     allOptions.forEach(opt => opt.style.pointerEvents = 'none');
     
-    // Marcar la seleccionada
     allOptions[optionIndex].classList.add(selectedOption.correct ? 'correct' : 'incorrect');
     
-    // Mostrar la correcta si falló
     if (!selectedOption.correct) {
         const correctIndex = question.options.findIndex(opt => opt.correct);
         allOptions[correctIndex].classList.add('correct');
@@ -723,7 +720,6 @@ function selectTriviaAnswer(optionIndex) {
         triviaHits++;
     }
     
-    // Mostrar explicación
     const explanationEl = document.getElementById('triviaExplanation');
     explanationEl.innerHTML = `
         <div class="explanation-icon">${selectedOption.correct ? '✅' : '❌'}</div>
@@ -734,7 +730,7 @@ function selectTriviaAnswer(optionIndex) {
     explanationEl.style.display = 'block';
     
     updateTriviaUI();
-    }
+}
 
 function nextTriviaQuestion() {
     currentQuestion++;
@@ -744,12 +740,11 @@ function nextTriviaQuestion() {
 function updateTriviaUI() {
     document.getElementById('score').textContent = triviaScore;
 }
-
 async function completeLevel4() {
     stopTimer();
     
     const formattedTime = formatTime(timer);
-    await saveGameProgress(4, triviaScore, true, formattedTime);
+    await saveGameProgress(4, triviaScore, true, formattedTime, triviaHits, triviaErrors);
     saveLevelReport(4, triviaScore, triviaHits, triviaErrors, formattedTime);
     
     document.getElementById('gameScreen').innerHTML = `
@@ -785,6 +780,9 @@ async function completeLevel4() {
     `;
 }
 
+// ========================================
+// ♻️ NIVEL 5: ¿SE RECICLA?
+// ========================================
 function startLevel5() {
     currentLevel = 5;
     score = 0;
@@ -809,12 +807,7 @@ function startLevel5() {
         { name: 'Colilla de cigarro', emoji: '🚬', recyclable: false, explanation: 'Las colillas NO son reciclables y son muy contaminantes.' },
         { name: 'Papel de oficina', emoji: '📄', recyclable: true, explanation: 'El papel blanco de oficina tiene alto valor de reciclaje.' },
         { name: 'Cerámica rota', emoji: '🏺', recyclable: false, explanation: 'La cerámica NO se recicla en el sistema convencional.' },
-        { name: 'Botella de vino', emoji: '🍷', recyclable: true, explanation: 'Las botellas de vidrio se reciclan completamente.' },
-        { name: 'Pañuelo desechable', emoji: '🤧', recyclable: false, explanation: 'Los pañuelos usados NO son reciclables.' },
-        { name: 'Revista', emoji: '📔', recyclable: true, explanation: 'Las revistas son reciclables aunque tengan tinta de colores.' },
-        { name: 'Chicle', emoji: '🍬', recyclable: false, explanation: 'El chicle NO es reciclable y contamina.' },
-        { name: 'Envase Tetra Pak', emoji: '🧃', recyclable: true, explanation: 'Los Tetra Pak son reciclables en plantas especializadas.' },
-        { name: 'Toalla sanitaria', emoji: '🩹', recyclable: false, explanation: 'Los productos de higiene personal NO se reciclan.' }
+        { name: 'Botella de vino', emoji: '🍷', recyclable: true, explanation: 'Las botellas de vidrio se reciclan completamente.' }
     ];
     
     recycleItems = recycleItems.sort(() => Math.random() - 0.5).slice(0, 15);
@@ -874,7 +867,6 @@ function showRecycleItem() {
     
     document.getElementById('recycleExplanation').style.display = 'none';
     
-    // Habilitar botones
     const buttons = document.querySelectorAll('.recycle-btn');
     buttons.forEach(btn => {
         btn.disabled = false;
@@ -886,11 +878,9 @@ function answerRecycle(userAnswer) {
     const item = recycleItems[currentRecycleItem];
     const isCorrect = userAnswer === item.recyclable;
     
-    // Deshabilitar botones
     const buttons = document.querySelectorAll('.recycle-btn');
     buttons.forEach(btn => btn.disabled = true);
     
-    // Marcar botón seleccionado
     const yesBtn = document.querySelector('.yes-btn');
     const noBtn = document.querySelector('.no-btn');
     
@@ -900,7 +890,6 @@ function answerRecycle(userAnswer) {
         noBtn.classList.add(isCorrect ? 'correct' : 'incorrect');
     }
     
-    // Mostrar el botón correcto si falló
     if (!isCorrect) {
         if (item.recyclable) {
             yesBtn.classList.add('correct');
@@ -909,7 +898,6 @@ function answerRecycle(userAnswer) {
         }
     }
     
-    // Actualizar puntuación
     if (isCorrect) {
         level5Score += 100;
         level5Hits++;
@@ -920,7 +908,6 @@ function answerRecycle(userAnswer) {
     
     updateLevel5UI();
     
-    // Mostrar explicación
     const explanationEl = document.getElementById('recycleExplanation');
     explanationEl.innerHTML = `
         <div class="explanation-icon">${isCorrect ? '✅' : '❌'}</div>
@@ -948,7 +935,7 @@ async function completeLevel5() {
     stopTimer();
     
     const formattedTime = formatTime(timer);
-    await saveGameProgress(5, level5Score, true, formattedTime);
+    await saveGameProgress(5, level5Score, true, formattedTime, level5Hits, level5Errors);
     saveLevelReport(5, level5Score, level5Hits, level5Errors, formattedTime);
     
     const percentage = Math.round((level5Hits / recycleItems.length) * 100);
@@ -986,7 +973,10 @@ async function completeLevel5() {
         </div>
     `;
 }
-// ⏱️ Utilidades
+
+// ========================================
+// ⏱️ FUNCIONES AUXILIARES
+// ========================================
 function startTimer() {
     timerInterval = setInterval(() => {
         timer++;
@@ -1032,40 +1022,81 @@ function showFeedback(message, type) {
     }, 1000);
 }
 
-// 💾 Guardar progreso en backend
-async function saveGameProgress(levelId, score, completed, time) {
+// ========================================
+// 💾 GUARDAR PROGRESO EN MONGODB
+// ========================================
+async function saveGameProgress(levelId, score, completed, time, hits = 0, errors = 0) {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
 
+    if (!user.userId) {
+        console.error('❌ No hay usuario logueado');
+        return;
+    }
+
     try {
-        await fetch(`${CONFIG.API_URL}/game/save-progress`, {
+        const response = await fetch(`${CONFIG.API_URL}/game/save-progress`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                userId: user.username,
+                userId: user.userId,
+                username: user.username,
                 levelId: levelId,
                 score: score,
                 completed: completed,
                 time: time,
-                hits: 0,
-                errors: 0
+                hits: hits,
+                errors: errors
             })
         });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            console.log('✅ Progreso guardado en MongoDB:', data);
+        } else {
+            console.error('❌ Error guardando:', data.error);
+        }
     } catch (error) {
-        console.error('Error guardando progreso:', error);
+        console.error('❌ Error de conexión guardando progreso:', error);
     }
 }
 
-// 📊 Guardar reportes en localStorage
-function saveLevelReport(level, score, hits, errors, time) {
-    let reports = JSON.parse(localStorage.getItem("battletrashReports")) || [];
+// ========================================
+// 💾 GUARDAR PROGRESO EN MONGODB
+// ========================================
+async function saveGameProgress(levelId, score, completed, time, hits = 0, errors = 0) {
+    // CORREGIDO: Leer el usuario correctamente
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-    const existingIndex = reports.findIndex(r => r.level === level);
-
-    if (existingIndex !== -1) {
-        reports[existingIndex] = { level, score, hits, errors, time };
-    } else {
-        reports.push({ level, score, hits, errors, time });
+    if (!user.userId) {
+        console.error('❌ No hay usuario logueado');
+        return;
     }
 
-    localStorage.setItem("battletrashReports", JSON.stringify(reports));
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/game/save-progress`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: user.userId,
+                username: user.username,
+                levelId: levelId,
+                score: score,
+                completed: completed,
+                time: time,
+                hits: hits,
+                errors: errors
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            console.log('✅ Progreso guardado en MongoDB:', data);
+        } else {
+            console.error('❌ Error guardando:', data.error);
+        }
+    } catch (error) {
+        console.error('❌ Error de conexión guardando progreso:', error);
+    }
 }

@@ -1,36 +1,35 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+const mongoose = require('mongoose');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-// ===== Depuración temporal: Map de usuarios y progreso =====
-// Estos deben coincidir con los que usas en tus controladores
-const users = new Map();          // Usuarios registrados
-const gameProgress = new Map();   // Progreso del juego
+// ===== Conectar a MongoDB =====
+mongoose.connect(process.env.MONGODB_URI)
+.then(() => {
+  console.log('✅ Conectado a MongoDB');
+})
+.catch((error) => {
+  console.error('❌ Error conectando a MongoDB:', error);
+  process.exit(1);
+});
 
-// Función para mostrar “base de datos temporal”
-const showTempDB = () => {
-  console.log('--- Usuarios registrados ---');
-  if (users.size === 0) {
-    console.log('No hay usuarios registrados aún.');
-  } else {
-    Array.from(users.entries()).forEach(([username, user]) => {
-      console.log(username, user);
-    });
-  }
+// Eventos de conexión
+mongoose.connection.on('connected', () => {
+  console.log('🔗 Mongoose conectado a MongoDB');
+});
 
-  console.log('\n--- Progreso del juego ---');
-  if (gameProgress.size === 0) {
-    console.log('No hay progreso registrado aún.');
-  } else {
-    Array.from(gameProgress.entries()).forEach(([key, progress]) => {
-      console.log(key, progress);
-    });
-  }
-};
+mongoose.connection.on('error', (err) => {
+  console.error('❌ Error de conexión MongoDB:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('⚠️ Mongoose desconectado de MongoDB');
+});
 
 // ===== Middleware =====
 app.use(cors());
@@ -40,7 +39,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Servir archivos estáticos del frontend
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// ===== Importar rutas DESPUÉS de configurar middleware =====
+// ===== Importar rutas =====
 const authRoutes = require('./routes/auth');
 const gameRoutes = require('./routes/game');
 
@@ -53,23 +52,44 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
-// Manejo de errores
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ 
-    error: 'Error interno del servidor',
-    message: err.message 
+// Ruta de salud (health check)
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok',
+    mongodb: mongoose.connection.readyState === 1 ? 'conectado' : 'desconectado',
+    timestamp: new Date().toISOString()
   });
 });
 
-// ===== Mostrar base de datos temporal al iniciar =====
-showTempDB();
+// Manejo de errores
+app.use((err, req, res, next) => {
+  console.error('Error:', err.stack);
+  res.status(500).json({ 
+    error: 'Error interno del servidor',
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Ha ocurrido un error'
+  });
+});
+
+// Manejo de rutas no encontradas
+app.use((req, res) => {
+  res.status(404).json({ 
+    error: 'Ruta no encontrada' 
+  });
+});
 
 // ===== Iniciar servidor =====
 app.listen(PORT, () => {
   console.log(`🎮 Servidor BattleTrash corriendo en http://localhost:${PORT}`);
   console.log(`📁 Frontend disponible en http://localhost:${PORT}`);
   console.log(`🔌 API disponible en http://localhost:${PORT}/api`);
+});
+
+// Manejo de cierre graceful
+process.on('SIGINT', async () => {
+  console.log('\n⚠️ Cerrando servidor...');
+  await mongoose.connection.close();
+  console.log('✅ Conexión a MongoDB cerrada');
+  process.exit(0);
 });
 
 module.exports = app;

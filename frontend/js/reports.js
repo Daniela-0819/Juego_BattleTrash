@@ -1,18 +1,21 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  if (!user.username) {
+  
+  // CORREGIDO: Verificar tanto username como userId
+  if (!user.username || !user.userId) {
+    console.log('No hay sesión activa, redirigiendo al login...');
     window.location.href = "login.html";
     return;
   }
 
   document.getElementById("userName").textContent = user.username;
-  await loadReports(user.username);
+  await loadReports(user.userId); // CORREGIDO: Usar userId en lugar de username
 });
 
 // Cargar los reportes del usuario
-async function loadReports(username) {
+async function loadReports(userId) {
   try {
-    const response = await fetch(`${CONFIG.API_URL}/game/progress/${username}`);
+    const response = await fetch(`${CONFIG.API_URL}/game/progress/${userId}`);
     const result = await response.json();
 
     if (!response.ok) throw new Error(result.error || "Error cargando reportes");
