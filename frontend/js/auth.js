@@ -1,7 +1,7 @@
 ﻿// Configuración de la API - Se adapta automáticamente al entorno
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:3000/api' // cuando pruebas en tu PC
-  : 'https://juego-battletrash.onrender.com/api'; // cuando está desplegado en Render
+  : 'https://juego-battletrash-k8dl.onrender.com/api'; // cuando está desplegado en Render
 document.addEventListener("DOMContentLoaded", () => {
   // Elementos del DOM
   const loginSection = document.getElementById("loginSection");

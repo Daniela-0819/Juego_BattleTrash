@@ -2,7 +2,7 @@
     API_URL: 
         windows.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         ? 'http://localhost:3000/api'
-        : 'https://juego-battletrash.onrender.com/api', 
+        : 'https://juego-battletrash-k8dl.onrender.com/api', 
     POINTS: {
         CORRECT: 100,
         INCORRECT: -20
