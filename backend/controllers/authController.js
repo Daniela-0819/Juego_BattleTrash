@@ -1,7 +1,6 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');  // <-- cambio aquí
 const jwt = require('jsonwebtoken');
-// En backend/controllers/authController.js
-const User = require('../models/User');  // ../ significa "subir un nivel"
+const User = require('../models/User');
 const JWT_SECRET = process.env.JWT_SECRET || 'tu_clave_secreta_super_segura_123';
 
 // Registro de usuario
@@ -16,7 +15,6 @@ const register = async (req, res) => {
       });
     }
 
-    // Validar longitud de contraseña
     if (password.length < 6) {
       return res.status(400).json({ 
         error: 'La contraseña debe tener al menos 6 caracteres' 
@@ -70,14 +68,12 @@ const login = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // Validar datos
     if (!username || !password) {
       return res.status(400).json({ 
         error: 'Usuario y contraseña son requeridos' 
       });
     }
 
-    // Buscar usuario
     const user = await User.findOne({ username });
     if (!user) {
       return res.status(401).json({ 
@@ -124,7 +120,7 @@ const login = async (req, res) => {
 // Obtener todos los usuarios (para debugging)
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({}, '-password'); // Excluir contraseñas
+    const users = await User.find({}, '-password');
     res.json({ 
       count: users.length,
       users 
