@@ -160,7 +160,7 @@ function showLevelMenu() {
             <div class="level-card">
                 <h3>Nivel 1</h3>
                 <p>🧠 Memory Game</p>
-                <p><small>Encuentra los pares</small></p>
+                <p><small>Encuentra los pares, imagen con palabra</small></p>
                 <button onclick="startLevel1()" class="btn-primary">Jugar</button>
             </div>
             <div class="level-card">
@@ -325,12 +325,12 @@ function startLevel2() {
     timer = 0;
 
     plantSteps = [
-        { id: 1, text: '1. Preparar la tierra y aflojarla', order: 1 },
-        { id: 2, text: '2. Hacer un hueco en el centro', order: 2 },
-        { id: 3, text: '3. Colocar la semilla', order: 3 },
-        { id: 4, text: '4. Cubrir con tierra', order: 4 },
-        { id: 5, text: '5. Regar con agua', order: 5 },
-        { id: 6, text: '6. Colocar en lugar con luz', order: 6 }
+        { id: 1, text: 'Preparar la tierra y aflojarla', order: 1 },
+        { id: 2, text: 'Hacer un hueco en el centro', order: 2 },
+        { id: 3, text: 'Colocar la semilla', order: 3 },
+        { id: 4, text: 'Cubrir con tierra', order: 4 },
+        { id: 5, text: 'Regar con agua', order: 5 },
+        { id: 6, text: 'Colocar en lugar con luz', order: 6 }
     ].sort(() => Math.random() - 0.5);
 
     document.getElementById('levelSelection').style.display = 'none';
